@@ -1,9 +1,9 @@
 from django.shortcuts import render
 from rest_framework.response import Response
 
-from .models import Microservice, Menu, Submenu
+from .models import Microservice, Menu, Submenu, PhisUser
 from .serializers import MicroserviceSerializer, GroupSerializer, MenuSerializer, PermissionSerializer, \
-    SubmenuSerializer
+    SubmenuSerializer, PhisUserSerializer
 from rest_framework.decorators import api_view
 from .roles import authenticated_user, admin_only
 
@@ -19,8 +19,8 @@ def microserviceList(request, format=None):
     return Response(serializer.data)
 
 
-# @authenticated_user
-# @admin_only
+@authenticated_user
+@admin_only
 @api_view(['POST'])
 def microserviceAdd(request, format=None):
     serializer = MicroserviceSerializer(data=request.data)
@@ -31,8 +31,8 @@ def microserviceAdd(request, format=None):
     return Response(serializer.data)
 
 
-# @authenticated_user
-# @admin_only
+@authenticated_user
+@admin_only
 @api_view(['PUT'])
 def microserviceEdit(request, pk):
     microservice = Microservice.objects.get(id=pk)
@@ -43,8 +43,8 @@ def microserviceEdit(request, pk):
     return Response(serializer.data)
 
 
-# @authenticated_user
-# @admin_only
+@authenticated_user
+@admin_only
 @api_view(['Patch'])
 def microserviceRemove(request, pk):
     microservice = Microservice.objects.get(id=pk)
@@ -57,8 +57,8 @@ def microserviceRemove(request, pk):
 
 
 # Menu Views
-# @authenticated_user
-# @admin_only
+@authenticated_user
+@admin_only
 @api_view(['GET'])
 def menuList(request, format=None):
     menu = Menu.objects.all()
@@ -66,8 +66,8 @@ def menuList(request, format=None):
     return Response(serializer.data)
 
 
-# @authenticated_user
-# @admin_only
+@authenticated_user
+@admin_only
 @api_view(['POST'])
 def menuAdd(request, format=None):
     serializer = MenuSerializer(data=request.data)
@@ -78,8 +78,8 @@ def menuAdd(request, format=None):
     return Response(serializer.data)
 
 
-# @authenticated_user
-# @admin_only
+@authenticated_user
+@admin_only
 @api_view(['PUT'])
 def menuEdit(request, pk):
     menu = Menu.objects.get(id=pk)
@@ -90,8 +90,8 @@ def menuEdit(request, pk):
     return Response(serializer.data)
 
 
-# @authenticated_user
-# @admin_only
+@authenticated_user
+@admin_only
 @api_view(['Patch'])
 def menuRemove(request, pk):
     menu = Menu.objects.get(id=pk)
@@ -104,8 +104,8 @@ def menuRemove(request, pk):
 
 
 # Submenu View
-# @authenticated_user
-# @admin_only
+@authenticated_user
+@admin_only
 @api_view(['POST'])
 def submenuAdd(request, format=None):
     serializer = SubmenuSerializer(data=request.data)
@@ -116,8 +116,8 @@ def submenuAdd(request, format=None):
     return Response(serializer.data)
 
 
-# @authenticated_user
-# @admin_only
+@authenticated_user
+@admin_only
 @api_view(['PUT'])
 def submenuEdit(request, pk):
     submenu = Submenu.objects.get(id=pk)
@@ -128,8 +128,8 @@ def submenuEdit(request, pk):
     return Response(serializer.data)
 
 
-# @authenticated_user
-# @admin_only
+@authenticated_user
+@admin_only
 @api_view(['Patch'])
 def submenuRemove(request, pk):
     submenu = Submenu.objects.get(id=pk)
@@ -149,8 +149,8 @@ def roleList(request, format=None):
     return Response(serializer.data)
 
 
-# @authenticated_user
-# @admin_only
+@authenticated_user
+@admin_only
 @api_view(['POST'])
 def roleAdd(request, format=None):
     serializer = GroupSerializer(data=request.data)
@@ -161,8 +161,8 @@ def roleAdd(request, format=None):
     return Response(serializer.data)
 
 
-# @authenticated_user
-# @admin_only
+@authenticated_user
+@admin_only
 @api_view(['PUT'])
 def roleEdit(request, pk):
     group = Group.objects.get(id=pk)
@@ -173,6 +173,8 @@ def roleEdit(request, pk):
     return Response(serializer.data)
 
 
+@authenticated_user
+@admin_only
 @api_view(['GET'])
 def roleFunctionList(request, format=None):
     # content_type = ContentType.objects.get_for_model(Microservice, Menu, Submenu,)
@@ -182,6 +184,8 @@ def roleFunctionList(request, format=None):
     return Response(serializer.data)
 
 
+@authenticated_user
+@admin_only
 @api_view(['POST'])
 def roleFunctionAdd(request, format=None):
     # somemodel_ct = ContentType.objects.get(app_label='myapp', model='somemodel')
@@ -197,3 +201,22 @@ def roleFunctionAdd(request, format=None):
     serializer = GroupSerializer(group, many=True)
 
     return Response(serializer.data)
+
+
+@authenticated_user
+@admin_only
+@api_view(['GET'])
+def userList(request, format=None):
+    user = PhisUser.objects.all()
+    serializer = PhisUserSerializer(user, many=True)
+    return Response(serializer.data)
+
+
+@authenticated_user
+@admin_only
+@api_view(['POST'])
+def userRoleAdd(request, format=None):
+    my_group = Group.objects.get(id=request.data['group_id'])
+    my_group.user_set.add(request.data['phisuser_id'])
+
+    return Response("Role assigned successfully")

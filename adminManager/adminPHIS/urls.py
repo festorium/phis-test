@@ -9,11 +9,13 @@ urlpatterns = [
     path('microservice-edit/<int:pk>/', views.microserviceEdit, name='microservice-edit'),
     path('microservice-remove/<int:pk>/', views.microserviceRemove, name='microservice-remove'),
 
+    path('user-list/', views.userList, name='user-list'),
     path('role-list/', views.roleList, name='role-list'),
     path('role-add/', views.roleAdd, name='role-add'),
     path('role-edit/<int:pk>/', views.roleEdit, name='role-edit'),
     path('rolefunc-list/', views.roleFunctionList, name='rolefunc-list'),
     path('rolefunc-add/', views.roleFunctionAdd, name='role-add'),
+    path('userrole-add/', views.userRoleAdd, name='userrole-add'),
 
     path('menu-add/', views.menuAdd, name='menu-add'),
     path('menu-list/', views.menuList, name='menu-list'),

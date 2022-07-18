@@ -1,6 +1,12 @@
 from rest_framework import serializers
-from .models import Microservice, Menu
+from .models import Microservice, Menu, PhisUser, Submenu
 from django.contrib.auth.models import Group, Permission
+
+
+class PhisUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PhisUser
+        fields = ('id', 'email', 'firstname', 'lastname')
 
 
 class MicroserviceSerializer(serializers.ModelSerializer):
@@ -39,5 +45,5 @@ class MenuSerializer(serializers.ModelSerializer):
 
 class SubmenuSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Menu
+        model = Submenu
         fields = ('id', 'menu', 'submenuname', 'submenuroute', 'submenudescription', 'comment', 'submenustatus')

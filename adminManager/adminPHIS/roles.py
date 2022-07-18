@@ -36,9 +36,9 @@ def admin_only(view_func):
         if request.user.groups.exists():
             group = request.user.groups.all()[0].name
 
-        if group == 'admin2':
-            return HttpResponse('You are not authorized to view this page')
-        elif group == 'admin1':
+        # if group == 'admin2':
+        #     return HttpResponse('You are not authorized to view this page')
+        if group == 'admin1':
             return view_func(request, *args, **kwargs)
         else:
             return HttpResponse('You are not authorized to view this page')
