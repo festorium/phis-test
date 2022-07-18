@@ -177,8 +177,6 @@ def roleEdit(request, pk):
 @admin_only
 @api_view(['GET'])
 def roleFunctionList(request, format=None):
-    # content_type = ContentType.objects.get_for_model(Microservice, Menu, Submenu,)
-    # permission = Permission.objects.filter(content_type=content_type)
     permission = Permission.objects.all()
     serializer = PermissionSerializer(permission, many=True)
     return Response(serializer.data)
