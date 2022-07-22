@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: admin-service-mysql
+  labels:
+    app: admin-service-mysql
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: admin-service-mysql
+  template:
+    metadata:
+      labels:
+        app: admin-service-mysql
+    spec:
+      volumes:
+        - name: mysql-volume
+          hostPath:
+            path: /home/fedgen/storage/mysql/admin-db/
+            type: Directory
+      containers:
+      - name: web
+        image: akandeav/phisadmin:latest-mysql
+        imagePullPolicy: Always
+        command: ['/bin/bash']
+        args: ['-c','python manage.py migrate; gunicorn -w 4 adminManager.wsgi -b 0.0.0.0:80']
+        ports:
+        - containerPort: 80
+          protocol: TCP
+      - name: mysql
+        image: akandeav/phisadmin-db:latest
+        volumeMounts:
+          - name: mysql-volume
+            mountPath: /var/lib/mysql/
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: admin-service-mysql
+spec:
+  selector:
+    app: admin-service-mysql
+  ports:
+    - protocol: TCP
+      port: 80
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: admin-service-ingress-secure
+spec:
+  entryPoints:
+    - websecure
+  routes:
+  - match: Path(`/admin`)
+    kind: Rule
+    services:
+    - name: admin-service-mysql
+      port: 80
+  tls:
+    secretName: apis-fedgen-net-tls

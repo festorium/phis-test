@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/4.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
-
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -19,7 +19,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-56qpm)0!+&klyv)ak0u%q8pb$@zlx_!pj8^=vq028*(d_4^-g^'
+SECRET_KEY = os.environ['ADMIN_SECRET_KEY']
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -76,15 +76,14 @@ WSGI_APPLICATION = 'adminManager.wsgi.application'
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
 DATABASES = {
-    'mysql': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'adminManager',
-        'USER': 'root',
-        'PASSWORD': 'adesiju1234',
-        'HOST': 'localhost',
-        'PORT': '3306',
-    },
     'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'admin_db',
+        'USER': 'root',
+        'PASSWORD': 'C7FgvO5Lsz',
+        'HOST': '127.0.0.1'
+    },
+    'sqlite': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
