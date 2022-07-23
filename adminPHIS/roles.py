@@ -12,6 +12,16 @@ def authenticated_user(view_func):
     return wrapper_func
 
 
+# header_data = curl GET(jwt.get_unverified_header(token))
+# try:
+#     payload = jwt.decode(
+#         token,
+#         key='',
+#         algorithms=[header_data['alg'], ]
+#     )
+# except ExpiredSignatureError as error:
+#     print(f'Unable to decode token, error: {error}')
+
 
 
 # def allowed_users(allowed_roles=[]):

@@ -1,4 +1,6 @@
+import jwt
 from django.shortcuts import render
+from rest_framework import status, response
 from rest_framework.response import Response
 
 from .models import Microservice, Menu, Submenu, PhisUser
@@ -9,6 +11,7 @@ from .roles import authenticated_user, admin_only
 
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
+from jwt.exceptions import ExpiredSignatureError
 
 
 # Microservice
@@ -16,7 +19,13 @@ from django.contrib.contenttypes.models import ContentType
 def microserviceList(request, format=None):
     microservice = Microservice.objects.all()
     serializer = MicroserviceSerializer(microservice, many=True)
-    return Response(serializer.data)
+
+    response = {
+        'ok': 'True',
+        'details': 'List of Microservices',
+        'data': serializer.data,
+    }
+    return Response(response)
 
 
 @authenticated_user
@@ -27,8 +36,12 @@ def microserviceAdd(request, format=None):
 
     if serializer.is_valid():
         serializer.save()
-
-    return Response(serializer.data)
+    response = {
+        'ok': 'True',
+        'details': 'Microservice added',
+        'data': serializer.data,
+    }
+    return Response(response)
 
 
 @authenticated_user
@@ -39,8 +52,12 @@ def microserviceEdit(request, pk):
     serializer = MicroserviceSerializer(instance=microservice, data=request.data)
     if serializer.is_valid():
         serializer.save()
-
-    return Response(serializer.data)
+    response = {
+        'ok': 'True',
+        'details': 'Microservice edited',
+        'data': serializer.data,
+    }
+    return Response(response)
 
 
 @authenticated_user
@@ -52,8 +69,12 @@ def microserviceRemove(request, pk):
     microservice.microserviceStatus = data.get("microserviceStatus", microservice.microserviceStatus)
     microservice.save()
     serializer = MicroserviceSerializer(microservice)
-
-    return Response(serializer.data)
+    response = {
+        'ok': 'True',
+        'details': 'Microservice status changed',
+        'data': serializer.data,
+    }
+    return Response(response)
 
 
 # Menu Views
@@ -63,7 +84,12 @@ def microserviceRemove(request, pk):
 def menuList(request, format=None):
     menu = Menu.objects.all()
     serializer = MenuSerializer(menu, many=True)
-    return Response(serializer.data)
+    response = {
+        'ok': 'True',
+        'details': 'List of Menu',
+        'data': serializer.data,
+    }
+    return Response(response)
 
 
 @authenticated_user
@@ -74,8 +100,12 @@ def menuAdd(request, format=None):
 
     if serializer.is_valid():
         serializer.save()
-
-    return Response(serializer.data)
+    response = {
+        'ok': 'True',
+        'details': 'Menu added',
+        'data': serializer.data,
+    }
+    return Response(response)
 
 
 @authenticated_user
@@ -86,8 +116,12 @@ def menuEdit(request, pk):
     serializer = MenuSerializer(instance=menu, data=request.data)
     if serializer.is_valid():
         serializer.save()
-
-    return Response(serializer.data)
+    response = {
+        'ok': 'True',
+        'details': 'Menu edited',
+        'data': serializer.data,
+    }
+    return Response(response)
 
 
 @authenticated_user
@@ -99,8 +133,12 @@ def menuRemove(request, pk):
     menu.menustatus = data.get("menustatus", menu.menustatus)
     menu.save()
     serializer = MenuSerializer(menu)
-
-    return Response(serializer.data)
+    response = {
+        'ok': 'True',
+        'details': 'Menu status changed',
+        'data': serializer.data,
+    }
+    return Response(response)
 
 
 # Submenu View
@@ -112,8 +150,12 @@ def submenuAdd(request, format=None):
 
     if serializer.is_valid():
         serializer.save()
-
-    return Response(serializer.data)
+    response = {
+        'ok': 'True',
+        'details': 'Submenu added',
+        'data': serializer.data,
+    }
+    return Response(response)
 
 
 @authenticated_user
@@ -124,8 +166,12 @@ def submenuEdit(request, pk):
     serializer = SubmenuSerializer(instance=submenu, data=request.data)
     if serializer.is_valid():
         serializer.save()
-
-    return Response(serializer.data)
+    response = {
+        'ok': 'True',
+        'details': 'Submenu edited',
+        'data': serializer.data,
+    }
+    return Response(response)
 
 
 @authenticated_user
@@ -137,8 +183,12 @@ def submenuRemove(request, pk):
     submenu.submenustatus = data.get("submenustatus", submenu.submenustatus)
     submenu.save()
     serializer = SubmenuSerializer(submenu)
-
-    return Response(serializer.data)
+    response = {
+        'ok': 'True',
+        'details': 'Submenu status changed',
+        'data': serializer.data,
+    }
+    return Response(response)
 
 
 # Role View
@@ -146,7 +196,12 @@ def submenuRemove(request, pk):
 def roleList(request, format=None):
     group = Group.objects.all()
     serializer = GroupSerializer(group, many=True)
-    return Response(serializer.data)
+    response = {
+        'ok': 'True',
+        'details': 'List of Roles',
+        'data': serializer.data,
+    }
+    return Response(response)
 
 
 @authenticated_user
@@ -157,8 +212,12 @@ def roleAdd(request, format=None):
 
     if serializer.is_valid():
         serializer.save()
-
-    return Response(serializer.data)
+    response = {
+        'ok': 'True',
+        'details': 'Role added',
+        'data': serializer.data,
+    }
+    return Response(response)
 
 
 @authenticated_user
@@ -169,8 +228,12 @@ def roleEdit(request, pk):
     serializer = GroupSerializer(instance=group, data=request.data)
     if serializer.is_valid():
         serializer.save()
-
-    return Response(serializer.data)
+    response = {
+        'ok': 'True',
+        'details': 'Role edited',
+        'data': serializer.data,
+    }
+    return Response(response)
 
 
 @authenticated_user
@@ -179,7 +242,12 @@ def roleEdit(request, pk):
 def roleFunctionList(request, format=None):
     permission = Permission.objects.all()
     serializer = PermissionSerializer(permission, many=True)
-    return Response(serializer.data)
+    response = {
+        'ok': 'True',
+        'details': 'List of Role functions',
+        'data': serializer.data,
+    }
+    return Response(response)
 
 
 @authenticated_user
@@ -201,13 +269,18 @@ def roleFunctionAdd(request, format=None):
     return Response(serializer.data)
 
 
-@authenticated_user
-@admin_only
+# @authenticated_user
+# @admin_only
 @api_view(['GET'])
 def userList(request, format=None):
     user = PhisUser.objects.all()
     serializer = PhisUserSerializer(user, many=True)
-    return Response(serializer.data)
+    response = {
+        'ok': True,
+        'details': 'List of Users',
+        'data': serializer.data,
+    }
+    return Response(response)
 
 
 @authenticated_user
@@ -216,5 +289,18 @@ def userList(request, format=None):
 def userRoleAdd(request, format=None):
     my_group = Group.objects.get(id=request.data['group_id'])
     my_group.user_set.add(request.data['phisuser_id'])
+    response = {
+        'ok': 'True',
+        'details': 'Role assigned successfully',
+    }
+    return Response(response)
 
-    return Response("Role assigned successfully")
+
+# @authenticated_user
+# @admin_only
+@api_view(['GET'])
+def userRoleList(request, format=None):
+    user = PhisUser.groups.get(phisuser_id=2)
+    serializer = PhisUserSerializer(user, many=True)
+    return Response(serializer.data)
+
