@@ -1,4 +1,7 @@
+import json
+
 import jwt
+import requests
 from django.shortcuts import render
 from rest_framework import status, response
 from rest_framework.response import Response
@@ -254,11 +257,6 @@ def roleFunctionList(request, format=None):
 @admin_only
 @api_view(['POST'])
 def roleFunctionAdd(request, format=None):
-    # somemodel_ct = ContentType.objects.get(app_label='myapp', model='somemodel')
-    # permission = Permission(name=request.codename, codename=request.codename, content_type=request.content_type)
-    # permission.save()
-    # special_users = request.rolename
-    # special_users.permissions.add(permission)
     permissions = Permission.objects.get(id=request.data['pid'])
     auth_group = Group.objects.get(name=request.data['rolename'])
     auth_group.permissions.add(permissions)
@@ -293,6 +291,20 @@ def userRoleAdd(request, format=None):
         'ok': 'True',
         'details': 'Role assigned successfully',
     }
+
+    user = PhisUser.groups.get(phisuser_id=request.data['phisuser_id'])
+    user_serializer = PhisUserSerializer(user, many=True)
+    user_data = user_serializer.data
+
+    group = Group.objects.get(id=request.data['group_id'])
+    role_serializer = GroupSerializer(instance=group, data=request.data)
+
+    role_data = {
+        "user_id": user_data["id"],
+        "user_role": role_serializer["name"]
+    }
+    r = requests.post('http://event.assign.role/', data=role_data)
+
     return Response(response)
 
 
@@ -304,3 +316,14 @@ def userRoleList(request, format=None):
     serializer = PhisUserSerializer(user, many=True)
     return Response(serializer.data)
 
+
+@api_view(['GET'])
+def userSignup(request, format=None):
+    r = requests.get('https://event.user.signup/')
+
+    data = json.loads(r.json)
+    serializer = PhisUserSerializer(data=data)
+    if serializer.is_valid():
+        serializer.save(userid=data.user_id, user_role=data.user_role, email=data.user_email)
+
+    return Response(serializer.data)
