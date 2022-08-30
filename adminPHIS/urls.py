@@ -26,6 +26,8 @@ urlpatterns = [
     path('submenu-edit/<int:pk>/', views.submenuEdit, name='submenu-edit'),
     path('submenu-remove/<int:pk>/', views.submenuRemove, name='submenu-remove'),
 
+    path('event.user.signup', views.userSignup, name='event-user-signup'),
+
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)
