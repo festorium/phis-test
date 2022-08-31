@@ -42,7 +42,7 @@ class PhisUser(AbstractBaseUser, PermissionsMixin):
     firstname = models.CharField(max_length=150, blank=True)
     lastname = models.CharField(max_length=150, blank=True)
     auth_user_id = models.CharField(max_length=150, blank=True)
-    userRole = models.CharField(max_length=150, blank=True)
+    user_role = models.CharField(max_length=150, blank=True)
     startDate = models.DateTimeField(default=timezone.now)
     about = models.TextField(_(
         'about'), max_length=500, blank=True)
