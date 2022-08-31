@@ -41,7 +41,8 @@ class PhisUser(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(_('email address'), unique=True)
     firstname = models.CharField(max_length=150, blank=True)
     lastname = models.CharField(max_length=150, blank=True)
-    # userRole = models.ForeignKey(Role, null=True, on_delete=models.CASCADE)
+    auth_user_id = models.CharField(max_length=150, blank=True)
+    userRole = models.CharField(max_length=150, blank=True)
     startDate = models.DateTimeField(default=timezone.now)
     about = models.TextField(_(
         'about'), max_length=500, blank=True)
@@ -102,6 +103,21 @@ class Submenu(models.Model):
 
     class Meta:
         ordering = ['-id']
+
+
+class Post(models.Model):
+    auth_user_id = models.CharField(max_length=150, blank=True)
+    content_post_id = models.CharField(max_length=150, blank=True)
+    post_title = models.CharField(max_length=200)
+    post_content = models.TextField()
+    created_date = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return self.title
+
+    class Meta:
+        ordering = ['-id']
+
 
 # class Role(models.Model):
 #     pass

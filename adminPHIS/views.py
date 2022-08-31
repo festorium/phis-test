@@ -317,11 +317,13 @@ def userRoleList(request, format=None):
     return Response(serializer.data)
 
 
-@api_view(['POST'])
+@api_view(['GET'])
 def userSignup(request, format=None):
-    data = request.data
+    r = requests.get('https://event.user.signup/')
+
+    data = json.loads(r.json)
     serializer = PhisUserSerializer(data=data)
     if serializer.is_valid():
-        serializer.save(userid=data['user_id'], user_role=data['user_role'], email=data['user_email'])
+        serializer.save(userid=data.user_id, user_role=data.user_role, email=data.user_email)
 
     return Response(serializer.data)
