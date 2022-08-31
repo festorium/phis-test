@@ -9,6 +9,12 @@ class PhisUserSerializer(serializers.ModelSerializer):
         fields = ('id', 'email', 'firstname', 'lastname')
 
 
+class PostSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PhisUser
+        fields = ('id', 'auth_user_id', 'content_post_id', 'post_title', 'post_content')
+
+
 class MicroserviceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Microservice

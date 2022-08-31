@@ -17,6 +17,9 @@ urlpatterns = [
     path('rolefunc-add/', views.roleFunctionAdd, name='role-add'),
     path('userrole-add/', views.userRoleAdd, name='userrole-add'),
 
+    path('event.user.signup', views.userSignup, name='event-user-signup'),
+    path('event.create.post', views.createPost, name='event-create-post'),
+
     path('menu-add/', views.menuAdd, name='menu-add'),
     path('menu-list/', views.menuList, name='menu-list'),
     path('menu-edit/<int:pk>/', views.menuEdit, name='menu-edit'),

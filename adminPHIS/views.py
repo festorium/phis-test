@@ -8,7 +8,7 @@ from rest_framework.response import Response
 
 from .models import Microservice, Menu, Submenu, PhisUser
 from .serializers import MicroserviceSerializer, GroupSerializer, MenuSerializer, PermissionSerializer, \
-    SubmenuSerializer, PhisUserSerializer
+    SubmenuSerializer, PhisUserSerializer, PostSerializer
 from rest_framework.decorators import api_view
 from .roles import authenticated_user, admin_only
 
@@ -300,7 +300,7 @@ def userRoleAdd(request, format=None):
     role_serializer = GroupSerializer(instance=group, data=request.data)
 
     role_data = {
-        "user_id": user_data["id"],
+        "user_id": user_data["auth_user_id"],
         "user_role": role_serializer["name"]
     }
     r = requests.post('http://event.assign.role/', data=role_data)
@@ -317,13 +317,29 @@ def userRoleList(request, format=None):
     return Response(serializer.data)
 
 
-@api_view(['GET'])
+# @api_view(['GET'])
+@api_view(['POST'])
 def userSignup(request, format=None):
-    r = requests.get('https://event.user.signup/')
+    # r = requests.get('https://event.user.signup/')
+    #
+    # data = json.loads(r.json)
+    # serializer = PhisUserSerializer(data=data)
+    # if serializer.is_valid():
+    #     serializer.save(userid=data.user_id, user_role=data.user_role, email=data.user_email)
 
-    data = json.loads(r.json)
+    data = request.data
     serializer = PhisUserSerializer(data=data)
     if serializer.is_valid():
-        serializer.save(userid=data.user_id, user_role=data.user_role, email=data.user_email)
+        serializer.save(auth_user_id=data['user_id'], user_role=data['user_role'], email=data['user_email'])
+
+    return Response(serializer.data)
+
+
+@api_view(['POST'])
+def createPost(request, format=None):
+    data = request.data
+    serializer = PostSerializer(data=data)
+    if serializer.is_valid():
+        serializer.save(auth_user_id=data['auth_user_id'], content_post_id=data['content_post_id'], post_title=data['post_title'], post_content=data['post_content'])
 
     return Response(serializer.data)
