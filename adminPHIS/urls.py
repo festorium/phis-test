@@ -19,6 +19,7 @@ urlpatterns = [
 
     path('event.user.signup', views.userSignup, name='event-user-signup'),
     path('event.create.post', views.createPost, name='event-create-post'),
+    path('event.approve.post/', views.approvePost, name='event-approve-post'),
 
     path('menu-add/', views.menuAdd, name='menu-add'),
     path('menu-list/', views.menuList, name='menu-list'),

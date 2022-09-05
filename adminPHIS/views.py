@@ -6,7 +6,7 @@ from django.shortcuts import render
 from rest_framework import status, response
 from rest_framework.response import Response
 
-from .models import Microservice, Menu, Submenu, PhisUser
+from .models import Microservice, Menu, Submenu, PhisUser, Post
 from .serializers import MicroserviceSerializer, GroupSerializer, MenuSerializer, PermissionSerializer, \
     SubmenuSerializer, PhisUserSerializer, PostSerializer
 from rest_framework.decorators import api_view
@@ -332,6 +332,29 @@ def createPost(request, format=None):
     data = request.data
     serializer = PostSerializer(data=data)
     if serializer.is_valid():
-        serializer.save(auth_user_id=data['auth_user_id'], content_post_id=data['content_post_id'], post_title=data['post_title'], post_content=data['post_content'])
+        serializer.save(auth_user_id=data['auth_user_id'], content_post_id=data['content_post_id'],
+                        post_title=data['post_title'], post_content=data['post_content'])
 
     return Response(serializer.data)
+
+
+@authenticated_user
+@admin_only
+@api_view(['POST'])
+def approvePost(request, format=None):
+    response = {
+        'ok': 'True',
+        'details': 'Post approved successfully',
+    }
+
+    post = Post.objects.get(content_post_id=request.data['content_post_id'])
+    post_serializer = PostSerializer(post, many=True)
+    post_data = post_serializer.data
+
+    approve_data = {
+        "content_post_id": post_data["content_post_id"],
+        "auth_user_id": post_data["auth_user_id"]
+    }
+    r = requests.post('http://event.approve.post/', data=approve_data)
+
+    return Response(response)
