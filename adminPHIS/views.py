@@ -342,7 +342,6 @@ def createPost(request, format=None):
 @admin_only
 @api_view(['POST'])
 def approvePost(request, format=None):
-
     response = {
         'ok': 'True',
         'details': 'Post approved successfully',
