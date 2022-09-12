@@ -21,7 +21,7 @@ spec:
             type: Directory
       containers:
       - name: web
-        image: akandeav/phisadmin:latest-mysql
+        image: akandeav/phisadmin:latest
         imagePullPolicy: Always
         command: ['/bin/bash']
         args: ['-c','python manage.py migrate; gunicorn -w 4 adminManager.wsgi -b 0.0.0.0:80']
@@ -53,7 +53,7 @@ spec:
   entryPoints:
     - websecure
   routes:
-  - match: Path(`/admin/{[aA-zZ]+}`)
+  - match: Path(`/adminPHIS/{[aA-zZ]+}`)
     kind: Rule
     services:
     - name: admin-service-mysql

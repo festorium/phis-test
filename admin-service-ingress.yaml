@@ -1,0 +1,15 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: admin-service-ingress-secure
+spec:
+  entryPoints:
+    - websecure
+  routes:
+  - match: Path(`/adminPHIS/{[aA-zZ]+}`)
+    kind: Rule
+    services:
+    - name: admin-service-mysql
+      port: 80
+  tls:
+    secretName: apis-fedgen-net-tls
