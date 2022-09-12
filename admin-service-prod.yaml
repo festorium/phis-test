@@ -53,7 +53,7 @@ spec:
   entryPoints:
     - websecure
   routes:
-  - match: Path(`/admin`)
+  - match: Path(`/admin/{[aA-zZ]+}`)
     kind: Rule
     services:
     - name: admin-service-mysql
