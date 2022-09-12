@@ -42,7 +42,7 @@ class PhisUser(AbstractBaseUser, PermissionsMixin):
     firstname = models.CharField(max_length=150, blank=True)
     lastname = models.CharField(max_length=150, blank=True)
     auth_user_id = models.CharField(max_length=150, blank=True)
-    user_role = models.CharField(max_length=150, blank=True)
+    user_role = models.CharField(max_length=2, blank=True)
     startDate = models.DateTimeField(default=timezone.now)
     about = models.TextField(_(
         'about'), max_length=500, blank=True)
@@ -118,7 +118,23 @@ class Post(models.Model):
     class Meta:
         ordering = ['-id']
 
+class AuthorApplication(models.Model):
+    PENDING = "P"
+    DECLINED = "D"
+    APPROVED = "A"
 
+    # Author application choices
+    AA_STATUS = [
+        (PENDING, 'pending'),
+        (DECLINED, 'declined'),
+        (APPROVED, 'approved')
+    ]
+    email = models.EmailField(unique=True)
+    google_scholar = models.URLField(max_length=150, unique=True)
+    research_gate = models.URLField(max_length=150, unique=True)
+    status = models.CharField(max_length=2, choices=AA_STATUS, default=PENDING)
+    applied_at = models.DateTimeField()
+    updated_at = models.DateTimeField(null=True)
 # class Role(models.Model):
 #     pass
 #

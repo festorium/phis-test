@@ -24,7 +24,7 @@ SECRET_KEY = os.environ['ADMIN_SECRET_KEY']
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 
@@ -36,8 +36,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'adminPHIS',
     'corsheaders',
+    'adminPHIS',
 
 ]
 
@@ -76,14 +76,14 @@ WSGI_APPLICATION = 'adminManager.wsgi.application'
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
 DATABASES = {
-    'default': {
+    'mysql': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'admin_db',
         'USER': 'root',
         'PASSWORD': 'C7FgvO5Lsz',
         'HOST': '127.0.0.1'
     },
-    'sqlite': {
+    'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
@@ -129,3 +129,5 @@ ROLEPERMISSIONS_MODULE = 'adminManager.roles'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
+CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_CREDENTIALS = True
