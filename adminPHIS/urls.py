@@ -17,6 +17,10 @@ urlpatterns = [
     path('rolefunc-add/', views.roleFunctionAdd, name='role-add'),
     path('userrole-add/', views.userRoleAdd, name='userrole-add'),
 
+    path('event.user.signup', views.userSignup, name='event-user-signup'),
+    path('event.create.post', views.createPost, name='event-create-post'),
+    path('event.approve.post/', views.approvePost, name='event-approve-post'),
+
     path('menu-add/', views.menuAdd, name='menu-add'),
     path('menu-list/', views.menuList, name='menu-list'),
     path('menu-edit/<int:pk>/', views.menuEdit, name='menu-edit'),
@@ -27,7 +31,10 @@ urlpatterns = [
     path('submenu-remove/<int:pk>/', views.submenuRemove, name='submenu-remove'),
 
     path('event.user.signup', views.userSignup, name='event-user-signup'),
-
+    path('submit.application', views.submitApplication, name='submit-application'),
+    path('get.application', views.getApplication, name='get-application'),
+    path('engage.application', views.engageApplication, name='engage-application'),
+    path('get.user.application', views.getUserApplication, name='user-application'),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)

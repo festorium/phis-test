@@ -1,37 +1,57 @@
-from aiohttp.web_response import json_response
 from django.http import HttpResponse
 from django.shortcuts import redirect
-
+import requests
+from adminPHIS.serializers import PhisUserSerializer
 import jwt
 from rest_framework import exceptions
+from rest_framework.response import Response
 
-from phis_admin.adminPHIS.models import PhisUser
+from adminPHIS.models import AuthorApplication, PhisUser
+from rest_framework.exceptions import AuthenticationFailed
 
-JWT_SECRET = 'secret'
+JWT_SECRET = 'QYmXTKt6bnzaFi76H7R88FQ'
 JWT_ALGORITHM = 'HS256'
 
 
 def authenticated_user(view_func):
+    # Authenticate requests from microservice
+    # These requests have no users, only JWT
     def wrapper_func(request, *args, **kwargs):
-
+        response = Response()
         request.user = None
-        jwt_token = request.headers.get('authorization', None)
+        jwt_token = request.headers['Authorization']
         if jwt_token:
             try:
                 payload = jwt.decode(jwt_token, JWT_SECRET,
                                      algorithms=[JWT_ALGORITHM])
+                if payload is not None:
+                    request.payload = payload
+                    return view_func(request, *args, **kwargs)
             except (jwt.DecodeError, jwt.ExpiredSignatureError):
-                return json_response({'message': 'Token is invalid'},
-                                     status=400)
-
-            request.user = PhisUser.objects.get(id=payload['user_id'])
-            # if request.user.is_authenticated:
-            if request.user:
-                return view_func(request, *args, **kwargs)
-            else:
-                return HttpResponse('You are not authorized to view this page')
+                raise AuthenticationFailed('Unathenticated')
+            
+            
         else:
             raise exceptions.AuthenticationFailed("Authorization header is not present")
+
+    return wrapper_func
+
+def authenticate_admin(view_func):
+    def wrapper_func(request, *args, **kwargs):
+        request.user = None
+        jwt_token = request.headers.get('Authorization', None)
+        if jwt_token:
+            try:
+                payload = jwt.decode(jwt_token, JWT_SECRET,
+                                     algorithms=[JWT_ALGORITHM])
+                if payload['role'] == "S":
+                    return view_func(request, *args, **kwargs)
+                else:
+                    raise AuthenticationFailed('Unauthorized access')
+            except (jwt.DecodeError, jwt.ExpiredSignatureError):
+                raise AuthenticationFailed('Bad token')
+        else:
+            raise AuthenticationFailed('Unathenticated')
 
     return wrapper_func
 
@@ -75,6 +95,7 @@ def admin_only(view_func):
         if group == 'admin1':
             return view_func(request, *args, **kwargs)
         else:
-            return HttpResponse('You are not authorized to view this page')
+            return AuthenticationFailed('Unathenticated')
 
     return wrapper_function
+

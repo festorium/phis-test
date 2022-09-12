@@ -41,7 +41,8 @@ class PhisUser(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(_('email address'), unique=True)
     firstname = models.CharField(max_length=150, blank=True)
     lastname = models.CharField(max_length=150, blank=True)
-    # userRole = models.ForeignKey(Role, null=True, on_delete=models.CASCADE)
+    auth_user_id = models.CharField(max_length=150, blank=True)
+    user_role = models.CharField(max_length=2, blank=True)
     startDate = models.DateTimeField(default=timezone.now)
     about = models.TextField(_(
         'about'), max_length=500, blank=True)
@@ -103,6 +104,37 @@ class Submenu(models.Model):
     class Meta:
         ordering = ['-id']
 
+
+class Post(models.Model):
+    auth_user_id = models.CharField(max_length=150, blank=True)
+    content_post_id = models.CharField(max_length=150, blank=True)
+    post_title = models.CharField(max_length=200)
+    post_content = models.TextField()
+    created_date = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return self.title
+
+    class Meta:
+        ordering = ['-id']
+
+class AuthorApplication(models.Model):
+    PENDING = "P"
+    DECLINED = "D"
+    APPROVED = "A"
+
+    # Author application choices
+    AA_STATUS = [
+        (PENDING, 'pending'),
+        (DECLINED, 'declined'),
+        (APPROVED, 'approved')
+    ]
+    email = models.EmailField(unique=True)
+    google_scholar = models.URLField(max_length=150, unique=True)
+    research_gate = models.URLField(max_length=150, unique=True)
+    status = models.CharField(max_length=2, choices=AA_STATUS, default=PENDING)
+    applied_at = models.DateTimeField()
+    updated_at = models.DateTimeField(null=True)
 # class Role(models.Model):
 #     pass
 #

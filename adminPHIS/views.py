@@ -5,17 +5,18 @@ import requests
 from django.shortcuts import render
 from rest_framework import status, response
 from rest_framework.response import Response
-
-from .models import Microservice, Menu, Submenu, PhisUser
+from .models import AuthorApplication, Microservice, Menu, Submenu, PhisUser, Post
 from .serializers import MicroserviceSerializer, GroupSerializer, MenuSerializer, PermissionSerializer, \
-    SubmenuSerializer, PhisUserSerializer
+    SubmenuSerializer, PhisUserSerializer, PostSerializer
 from rest_framework.decorators import api_view
-from .roles import authenticated_user, admin_only
+from .roles import authenticate_admin, authenticated_user, admin_only
 
+from django.utils import timezone
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from jwt.exceptions import ExpiredSignatureError
 
+AUTH_URL = 'https://fedgen.tk/auth'
 
 # Microservice
 @api_view(['GET'])
@@ -317,11 +318,142 @@ def userRoleList(request, format=None):
     return Response(serializer.data)
 
 
-@api_view(['POST'])
+@api_view(['GET'])
+@authenticated_user
 def userSignup(request, format=None):
     data = request.data
     serializer = PhisUserSerializer(data=data)
     if serializer.is_valid():
-        serializer.save(userid=data['user_id'], user_role=data['user_role'], email=data['user_email'])
+        serializer.save(auth_user_id=data['auth_user_id'], user_role=data['user_role'], email=data['user_email'],
+                        firstname=data['first_name'], lastname=data['last_name'])
 
     return Response(serializer.data)
+
+
+
+@api_view(['GET'])
+def createPost(request, format=None):
+    data = request.data
+    serializer = PostSerializer(data=data)
+    if serializer.is_valid():
+        serializer.save(auth_user_id=data['auth_user_id'], content_post_id=data['content_post_id'],
+                        post_title=data['post_title'], post_content=data['post_content'])
+
+    return Response(serializer.data)
+
+
+@authenticated_user
+@admin_only
+@api_view(['POST'])
+def approvePost(request, format=None):
+    response = {
+        'ok': 'True',
+        'details': 'Post approved successfully',
+    }
+
+    post = Post.objects.get(content_post_id=request.data['content_post_id'])
+    post_serializer = PostSerializer(post, many=True)
+    post_data = post_serializer.data
+
+    approve_data = {
+        "content_post_id": post_data["content_post_id"],
+        "auth_user_id": post_data["auth_user_id"]
+    }
+    r = requests.post('http://event.approve.post/', data=approve_data)
+
+    return Response(response)
+
+@api_view(['POST'])
+@authenticate_admin
+def engageApplication(request, format=None):
+    response = Response()
+    try:
+        filter = request.data['filter']
+        if filter == "approve":
+            user = AuthorApplication.objects.filter(email=request.data['email']).first()
+            if user is not None:
+                auth_req = requests.post(AUTH_URL + '/event.assign.role', json={"user_email": request.data['email'], "user_role": "A"}, headers={'Authorization': request.headers['Authorization']})
+                if auth_req.ok:
+                    user.status = 'A'
+                    user.updated_at = timezone.now()
+                    user.save()
+                    response.data = {"ok": True, "details": "User approved as author"}
+            else:
+                response.data = {"ok": False, "details": "User not found"}
+        elif filter == "declined":
+            user = AuthorApplication.objects.filter(email=request.data['email']).first()
+            if user is not None:
+                user.status = 'D'
+                user.updated_at = timezone.now()
+                user.save()
+                response.data = {"ok": True, "details": "User approved as author"}
+            else:
+                response.data = {"ok": False, "details": "User not found"}
+        else:
+            response.data = {"ok": False, "details": "Invalid request"}
+    except KeyError:
+        response.data = {
+            "ok": False,
+            "details": "Invalid request"
+        }
+    return response
+
+@api_view(['POST'])
+@authenticated_user
+def submitApplication(request, format=None):
+    response = Response()
+    try:
+        data = request.data
+        payload = request.payload
+        user = PhisUser.objects.filter(auth_user_id=payload['id']).first()
+        if user is not None:
+            application = AuthorApplication(email=data['email'], google_scholar=data['google_scholar'], applied_at=timezone.now())
+            application.save()
+            response.data = {"ok": True, "details": "Application submitted"}
+        else:
+            res = requests.post(AUTH_URL + '/get.user', json={"id": payload['id']}, headers={'Authorization': request.headers['Authorization']})
+            if res.ok:
+                res_data = res.json()['data']
+                application = AuthorApplication(email=data['email'], google_scholar=data['google_scholar'], applied_at=timezone.now())
+                application.save()
+                user = PhisUser(email=res_data['email'], auth_user_id=res_data['id'], firstname=res_data['firstname'], lastname=res_data['lastname'])
+                
+                user.save()
+                response.data = {"ok": True, "details": "Application submitted"}
+            else:
+                response.data = {"ok": False, "details": "User record missing"}
+    except KeyError:
+        response.data = {"ok": False, "details": "Invalid request"}
+    return response
+
+@api_view(['GET'])
+@authenticate_admin
+def getApplication(request, format=None):
+    response = Response()
+    try:
+        filter = request.data['filter']
+        if filter == 'P' or filter == 'A' or filter == 'D':
+            applications = [{"email":application.email, "gs": application.google_scholar, "status": application.status} for application in AuthorApplication.objects.filter(status=filter)]
+            response.data = {"ok": True, "applications": applications}
+        else:
+           response.data = {"ok": False, "details": "Invalid request"}
+    except KeyError:
+        response.data = {"ok": False, "details": "Invalid request"}
+    return response
+
+@api_view(['GET'])
+@authenticated_user
+def getUserApplication(request, format=None):
+    response = Response()
+    app = AuthorApplication.objects.filter(email=request.data['email'])
+    if app is not None:
+        response.data = {
+            "ok": True,
+            "gs": app.google_scholar,
+            "status": app.status
+        }
+    else:
+        response.data = {
+            "ok": False,
+            "details": "No application found"
+        }

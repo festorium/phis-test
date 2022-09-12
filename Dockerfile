@@ -1,6 +1,6 @@
 FROM python:3.9
 
-ENV ADMIN_SECRET_KEY="django-insecure-56qpm)0!+&klyv)ak0u%q8pb$@zlx_!pj8^=vq028*(d_4^-g^"
+ENV ADMIN_SECRET_KEY="django-insecure-56qpm0&klyvak0uq8pb@zlx_pj8^vq028d_4-"
 
 RUN apt update && apt install -y gcc libmariadb-dev-compat
 
