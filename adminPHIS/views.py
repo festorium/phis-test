@@ -407,19 +407,26 @@ def submitApplication(request, format=None):
         payload = request.payload
         user = PhisUser.objects.filter(auth_user_id=payload['id']).first()
         if user is not None:
-            application = AuthorApplication(email=data['email'], google_scholar=data['google_scholar'], applied_at=timezone.now())
-            application.save()
-            response.data = {"ok": True, "details": "Application submitted"}
+            application = AuthorApplication.objects.filter(email=data['email']).first()
+            if application is None:
+                application = AuthorApplication(email=data['email'], google_scholar=data['google_scholar'], applied_at=timezone.now())
+                application.save()
+                response.data = {"ok": True, "details": "Application submitted"}
+            else:
+                response.data = {"ok": False, "details": "You have already applied"}
         else:
             res = requests.post(AUTH_URL + '/get.user', json={"id": payload['id']}, headers={'Authorization': request.headers['Authorization']})
             if res.ok:
                 res_data = res.json()['data']
-                application = AuthorApplication(email=data['email'], google_scholar=data['google_scholar'], applied_at=timezone.now())
-                application.save()
                 user = PhisUser(email=res_data['email'], auth_user_id=res_data['id'], firstname=res_data['firstname'], lastname=res_data['lastname'])
-                
                 user.save()
-                response.data = {"ok": True, "details": "Application submitted"}
+                application = AuthorApplication.objects.filter(email=data['email']).first()
+                if application is None:
+                    application = AuthorApplication(email=data['email'], google_scholar=data['google_scholar'], applied_at=timezone.now())
+                    application.save()
+                    response.data = {"ok": True, "details": "Application submitted"}
+                else:
+                    response.data = {"ok": False, "details": "You have already applied"}  
             else:
                 response.data = {"ok": False, "details": "User record missing"}
     except KeyError:
@@ -430,7 +437,6 @@ def submitApplication(request, format=None):
 @authenticate_admin
 def getApplication(request, format=None):
     response = Response()
-    
     applications = [{"email":application.email, "gs": application.google_scholar, "status": application.status} for application in AuthorApplication.objects.filter(status="P")]
     response.data = {"ok": True, "applications": applications}
     
