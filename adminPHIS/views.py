@@ -16,7 +16,7 @@ from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from jwt.exceptions import ExpiredSignatureError
 
-AUTH_URL = 'https://fedgen.tk/auth'
+AUTH_URL = 'https://fedgen.ml/auth'
 
 # Microservice
 @api_view(['GET'])
