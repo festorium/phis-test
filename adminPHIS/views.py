@@ -430,18 +430,13 @@ def submitApplication(request, format=None):
 @authenticate_admin
 def getApplication(request, format=None):
     response = Response()
-    try:
-        filter = request.data['filter']
-        if filter == 'P' or filter == 'A' or filter == 'D':
-            applications = [{"email":application.email, "gs": application.google_scholar, "status": application.status} for application in AuthorApplication.objects.filter(status=filter)]
-            response.data = {"ok": True, "applications": applications}
-        else:
-           response.data = {"ok": False, "details": "Invalid request"}
-    except KeyError:
-        response.data = {"ok": False, "details": "Invalid request"}
+    
+    applications = [{"email":application.email, "gs": application.google_scholar, "status": application.status} for application in AuthorApplication.objects.filter(status="P")]
+    response.data = {"ok": True, "applications": applications}
+    
     return response
 
-@api_view(['GET'])
+@api_view(['POST'])
 @authenticated_user
 def getUserApplication(request, format=None):
     response = Response()
