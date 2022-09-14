@@ -6,7 +6,7 @@ spec:
   entryPoints:
     - websecure
   routes:
-  - match: Path(`/adminPHIS/{[aA-zZ]+}`)
+  - match: Path(`/adminPHIS/{[0aA-9zZ]+}/{[0aA-9zZ]+}/{[0aA-9zZ]+}`)
     kind: Rule
     services:
     - name: admin-service-mysql
