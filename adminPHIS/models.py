@@ -130,8 +130,8 @@ class AuthorApplication(models.Model):
         (APPROVED, 'approved')
     ]
     email = models.EmailField(unique=True)
-    google_scholar = models.URLField(max_length=300, unique=True)
-    research_gate = models.URLField(max_length=300, unique=True)
+    google_scholar = models.URLField(max_length=200, unique=True)
+    research_gate = models.URLField(max_length=200, unique=True)
     status = models.CharField(max_length=2, choices=AA_STATUS, default=PENDING)
     applied_at = models.DateTimeField()
     updated_at = models.DateTimeField(null=True)
