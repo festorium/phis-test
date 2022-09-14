@@ -321,13 +321,25 @@ def userRoleList(request, format=None):
 @api_view(['GET'])
 @authenticated_user
 def userSignup(request, format=None):
+    response = Response()
     data = request.data
-    serializer = PhisUserSerializer(data=data)
-    if serializer.is_valid():
-        serializer.save(auth_user_id=data['auth_user_id'], user_role=data['user_role'], email=data['user_email'],
-                        firstname=data['first_name'], lastname=data['last_name'])
+    user = PhisUser.objects.filter(email=data['email']).first()
+    if user is None:
+        serializer = PhisUserSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save(auth_user_id=data['auth_user_id'], user_role=data['user_role'], email=data['user_email'],
+                            firstname=data['first_name'], lastname=data['last_name'])
+        response.data = {
+            "ok": True,
+            "data": serializer.data
+        }
+    else:
+        response.data = {
+            "ok": True,
+            "message": "User exists",
+        }
 
-    return Response(serializer.data)
+    return response
 
 
 
