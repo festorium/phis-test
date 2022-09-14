@@ -409,7 +409,7 @@ def submitApplication(request, format=None):
         if user is not None:
             application = AuthorApplication.objects.filter(email=data['email']).first()
             if application is None:
-                application = AuthorApplication(email=data['email'], google_scholar=data['google_scholar'], applied_at=timezone.now())
+                application = AuthorApplication(email=data['email'], google_scholar=data['google_scholar'], research_gate=data['research_gate'], applied_at=timezone.now())
                 application.save()
                 response.data = {"ok": True, "details": "Application submitted"}
             else:
@@ -422,7 +422,7 @@ def submitApplication(request, format=None):
                 user.save()
                 application = AuthorApplication.objects.filter(email=data['email']).first()
                 if application is None:
-                    application = AuthorApplication(email=data['email'], google_scholar=data['google_scholar'], applied_at=timezone.now())
+                    application = AuthorApplication(email=data['email'], google_scholar=data['google_scholar'], research_gate=data['research_gate'], applied_at=timezone.now())
                     application.save()
                     response.data = {"ok": True, "details": "Application submitted"}
                 else:
