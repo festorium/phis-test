@@ -448,6 +448,11 @@ def submitApplication(request, format=None):
                 response.data = {"ok": True, "details": "Application submitted"}
             elif application.status == 'D':
                 application.status = 'P'
+                application.research_gate = data['research_gate']
+                application.google_scholar = data['google_scholar']
+                application.scopus = data['scopus']
+                application.pub_med = data['pub_med']
+                application.capic_status = data['capic_status']
                 application.save()
                 response.data = {"ok": True, "details": "Application has been updated"}
             else:
