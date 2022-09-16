@@ -135,7 +135,7 @@ class AuthorApplication(models.Model):
     research_gate = models.URLField(max_length=200, null=True, unique=True)
     scopus = models.URLField(max_length=200, null=True, unique=True)
     pub_med = models.URLField(max_length=200, null=True, unique=True)
-    capic_status = models.CharField(max_length=100)
+    capic_status = models.CharField(max_length=100, blank=True)
     status = models.CharField(max_length=2, choices=AA_STATUS, default=PENDING)
     applied_at = models.DateTimeField()
     updated_at = models.DateTimeField(null=True)
