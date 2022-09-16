@@ -1,3 +1,4 @@
+from os import truncate
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.contrib.auth.models import PermissionsMixin
 from django.db import models
@@ -130,8 +131,11 @@ class AuthorApplication(models.Model):
         (APPROVED, 'approved')
     ]
     email = models.EmailField(unique=True)
-    google_scholar = models.URLField(max_length=200, unique=True)
-    research_gate = models.URLField(max_length=200, unique=True)
+    google_scholar = models.URLField(max_length=200, null=True, unique=True)
+    research_gate = models.URLField(max_length=200, null=True, unique=True)
+    scopus = models.URLField(max_length=200, null=True, unique=True)
+    pub_med = models.URLField(max_length=200, null=True, unique=True)
+    capic_status = models.CharField(max_length=100)
     status = models.CharField(max_length=2, choices=AA_STATUS, default=PENDING)
     applied_at = models.DateTimeField()
     updated_at = models.DateTimeField(null=True)

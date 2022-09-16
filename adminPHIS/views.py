@@ -387,6 +387,16 @@ def engageApplication(request, format=None):
                     user.status = 'A'
                     user.updated_at = timezone.now()
                     user.save()
+                    auth_data = {
+                        "filter": "author",
+                        "google_scholar": user.google_scholar,
+                        "research_gate": user.research_gate,
+                        "scopus": user.scopus,
+                        "pub_med": user.pub_med,
+                        "capic_status": user.capic_status
+                    }
+                    # Send request to auth microservice
+                    #res = requests.post(AUTH_URL + '/update.user', json=auth_data, headers={'Authorization': request.headers['Authorization']})
                     response.data = {"ok": True, "details": "User approved as author"}
             else:
                 response.data = {"ok": False, "details": "User not found"}
@@ -419,7 +429,9 @@ def submitApplication(request, format=None):
         if user is not None:
             application = AuthorApplication.objects.filter(email=data['email']).first()
             if application is None:
-                application = AuthorApplication(email=data['email'], google_scholar=data['google_scholar'], research_gate=data['research_gate'], applied_at=timezone.now())
+                application = AuthorApplication(email=data['email'], google_scholar=data['google_scholar'], 
+                                                research_gate=data['research_gate'], applied_at=timezone.now(),
+                                                scopus=data['scopus'], pub_med=data['pub_med'], capic_status=data['capic_status'])
                 application.save()
                 response.data = {"ok": True, "details": "Application submitted"}
             else:
@@ -432,7 +444,9 @@ def submitApplication(request, format=None):
                 user.save()
                 application = AuthorApplication.objects.filter(email=data['email']).first()
                 if application is None:
-                    application = AuthorApplication(email=data['email'], google_scholar=data['google_scholar'], research_gate=data['research_gate'], applied_at=timezone.now())
+                    application = AuthorApplication(email=data['email'], google_scholar=data['google_scholar'], 
+                                                    research_gate=data['research_gate'], applied_at=timezone.now(),
+                                                    scopus=data['data'], pub_med=data['pub_med'], capic_status=data['capic_status'])
                     application.save()
                     response.data = {"ok": True, "details": "Application submitted"}
                 else:
@@ -447,7 +461,17 @@ def submitApplication(request, format=None):
 @authenticate_admin
 def getApplication(request, format=None):
     response = Response()
-    applications = [{"email":application.email, "gs": application.google_scholar, "status": application.status} for application in AuthorApplication.objects.filter(status="P")]
+    applications = [
+        {"email":application.email, 
+        "gs": application.google_scholar, 
+        "status": application.status,
+        "rg": application.research_gate,
+        "sc": application.scopus,
+        "pb": application.pub_med,
+        "ace": application.capic_status,
+        "firstname": PhisUser.objects.filter(email=application.email).first().firstname,
+        "lastname": PhisUser.objects.filter(email=application.email).first().lastname
+        } for application in AuthorApplication.objects.filter(status="P")]
     response.data = {"ok": True, "applications": applications}
     
     return response
