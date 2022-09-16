@@ -439,13 +439,17 @@ def submitApplication(request, format=None):
         payload = request.payload
         user = PhisUser.objects.filter(auth_user_id=payload['id']).first()
         if user is not None:
-            application = AuthorApplication.objects.filter(email=data['email'], status='P').first()
+            application = AuthorApplication.objects.filter(email=data['email']).first()
             if application is None:
                 application = AuthorApplication(email=data['email'], google_scholar=data['google_scholar'], 
                                                 research_gate=data['research_gate'], applied_at=timezone.now(),
                                                 scopus=data['scopus'], pub_med=data['pub_med'], capic_status=data['capic_status'])
                 application.save()
                 response.data = {"ok": True, "details": "Application submitted"}
+            elif aplication.status == 'D':
+                application.status = 'P'
+                application.save()
+                response.data = {"ok": True, "details": "Application has been updated"}
             else:
                 response.data = {"ok": False, "details": "You have already applied"}
         else:
