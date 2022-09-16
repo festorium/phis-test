@@ -439,7 +439,7 @@ def submitApplication(request, format=None):
         payload = request.payload
         user = PhisUser.objects.filter(auth_user_id=payload['id']).first()
         if user is not None:
-            application = AuthorApplication.objects.filter(email=data['email']).first()
+            application = AuthorApplication.objects.filter(email=data['email'], status='P').first()
             if application is None:
                 application = AuthorApplication(email=data['email'], google_scholar=data['google_scholar'], 
                                                 research_gate=data['research_gate'], applied_at=timezone.now(),
@@ -454,7 +454,7 @@ def submitApplication(request, format=None):
                 res_data = res.json()['data']
                 user = PhisUser(email=res_data['email'], auth_user_id=res_data['id'], firstname=res_data['firstname'], lastname=res_data['lastname'])
                 user.save()
-                application = AuthorApplication.objects.filter(email=data['email']).first()
+                application = AuthorApplication.objects.filter(email=data['email'], status='P').first()
                 if application is None:
                     application = AuthorApplication(email=data['email'], google_scholar=data['google_scholar'], 
                                                     research_gate=data['research_gate'], applied_at=timezone.now(),
