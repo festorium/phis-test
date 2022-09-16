@@ -395,8 +395,14 @@ def engageApplication(request, format=None):
                         "pub_med": user.pub_med,
                         "capic_status": user.capic_status
                     }
+                    notification_data = {
+                        "filter": "author_approve",
+                        "first_name": user.email
+                    }
                     # Send request to auth microservice
-                    #res = requests.post(AUTH_URL + '/update.user', json=auth_data, headers={'Authorization': request.headers['Authorization']})
+                    res = requests.post(AUTH_URL + '/update.user', json=auth_data, headers={'Authorization': request.headers['Authorization']})
+                    # Send event to notification microservice
+                    res1 = requests.post('https://fedgen.ml/notify/author', json=notification_data, headers={'Authorization': request.headers['Authorization']})
                     response.data = {"ok": True, "details": "User approved as author"}
             else:
                 response.data = {"ok": False, "details": "User not found"}
@@ -406,7 +412,12 @@ def engageApplication(request, format=None):
                 user.status = 'D'
                 user.updated_at = timezone.now()
                 user.save()
-                response.data = {"ok": True, "details": "User approved as author"}
+                response.data = {"ok": True, "details": "User declined as author"}
+                notification_data = {
+                    "filter": "author_approve",
+                    "first_name": user.email
+                }
+                res1 = requests.post('https://fedgen.ml/notify/author', json=notification_data, headers={'Authorization': request.headers['Authorization']})
             else:
                 response.data = {"ok": False, "details": "User not found"}
         else:
