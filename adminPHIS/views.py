@@ -446,7 +446,7 @@ def submitApplication(request, format=None):
                                                 scopus=data['scopus'], pub_med=data['pub_med'], capic_status=data['capic_status'])
                 application.save()
                 response.data = {"ok": True, "details": "Application submitted"}
-            elif aplication.status == 'D':
+            elif application.status == 'D':
                 application.status = 'P'
                 application.save()
                 response.data = {"ok": True, "details": "Application has been updated"}
