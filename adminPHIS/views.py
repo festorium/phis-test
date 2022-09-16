@@ -1,7 +1,7 @@
 import json
 
 import jwt
-import requests
+import requests, os
 from django.shortcuts import render
 from rest_framework import status, response
 from rest_framework.response import Response
@@ -10,14 +10,13 @@ from .serializers import MicroserviceSerializer, GroupSerializer, MenuSerializer
     SubmenuSerializer, PhisUserSerializer, PostSerializer
 from rest_framework.decorators import api_view
 from .roles import authenticate_admin, authenticated_user, admin_only
-
 from django.utils import timezone
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from jwt.exceptions import ExpiredSignatureError
 
 AUTH_URL = 'https://fedgen.ml/auth'
-
+secret = os.environ['JWT_SECRET_KEY']
 # Microservice
 @api_view(['GET'])
 def microserviceList(request, format=None):
@@ -397,7 +396,8 @@ def engageApplication(request, format=None):
                     }
                     notification_data = {
                         "filter": "author_approve",
-                        "first_name": user.email
+                        "first_name": user.email,
+                        "token": secret
                     }
                     # Send request to auth microservice
                     res = requests.post(AUTH_URL + '/update.user', json=auth_data, headers={'Authorization': request.headers['Authorization']})
@@ -415,7 +415,8 @@ def engageApplication(request, format=None):
                 response.data = {"ok": True, "details": "User declined as author"}
                 notification_data = {
                     "filter": "author_approve",
-                    "first_name": user.email
+                    "first_name": user.email,
+                    "token": secret
                 }
                 res1 = requests.post('https://fedgen.ml/notify/author', json=notification_data, headers={'Authorization': request.headers['Authorization']})
             else:

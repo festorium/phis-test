@@ -1,6 +1,6 @@
 from django.http import HttpResponse
 from django.shortcuts import redirect
-import requests
+import requests, os
 from adminPHIS.serializers import PhisUserSerializer
 import jwt
 from rest_framework import exceptions
@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from adminPHIS.models import AuthorApplication, PhisUser
 from rest_framework.exceptions import AuthenticationFailed
 
-JWT_SECRET = 'QYmXTKt6bnzaFi76H7R88FQ'
+JWT_SECRET = os.environ['JWT_SECRET_KEY']
 JWT_ALGORITHM = 'HS256'
 
 
