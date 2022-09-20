@@ -281,29 +281,27 @@ def userList(request, format=None):
     return Response(response)
 
 
-@authenticated_user
-@admin_only
+@authenticate_admin
 @api_view(['POST'])
 def userRoleAdd(request, format=None):
-    my_group = Group.objects.get(id=request.data['group_id'])
-    my_group.user_set.add(request.data['phisuser_id'])
-    response = {
-        'ok': 'True',
-        'details': 'Role assigned successfully',
-    }
-
-    user = PhisUser.groups.get(phisuser_id=request.data['phisuser_id'])
-    user_serializer = PhisUserSerializer(user, many=True)
-    user_data = user_serializer.data
-
-    group = Group.objects.get(id=request.data['group_id'])
-    role_serializer = GroupSerializer(instance=group, data=request.data)
-
-    role_data = {
-        "user_id": user_data["id"],
-        "user_role": role_serializer["name"]
-    }
-    r = requests.post('http://event.assign.role/', data=role_data)
+    
+    user = PhisUser.objects.get(email=request.data['user_email'])
+    new_role = request.data['user_role']
+    if user is not None:
+        user.user_role = new_role
+        user.save()
+        role_data = {
+            "user_email": request.data['user_email'],
+            "user_role": new_role
+        }
+        header = {'Content-Type': 'application/json', 'Authorization': request.headers.get('Authorization', None)}
+        r = requests.post('https://fedgen.ml/auth/event.assign.role', json=role_data, data=role_data, headers=header)
+        if r.ok:
+            response.data = {"ok": True, "details": "User role changed"}
+        else:
+            response.data = {"ok": False, "details": "Auth request failed"}
+    else:
+        response.data = {"ok": False, "details": "User not found"}
 
     return Response(response)
 
