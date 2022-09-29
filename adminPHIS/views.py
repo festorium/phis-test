@@ -284,7 +284,7 @@ def userList(request, format=None):
 @authenticate_admin
 @api_view(['POST'])
 def userRoleAdd(request, format=None):
-    
+    response = Response()
     user = PhisUser.objects.get(email=request.data['user_email'])
     new_role = request.data['user_role']
     if user is not None:
@@ -303,7 +303,7 @@ def userRoleAdd(request, format=None):
     else:
         response.data = {"ok": False, "details": "User not found"}
 
-    return Response(response)
+    return response
 
 
 # @authenticated_user
