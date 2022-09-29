@@ -280,9 +280,8 @@ def userList(request, format=None):
     }
     return Response(response)
 
-
-@authenticate_admin
 @api_view(['POST'])
+@authenticate_admin
 def userRoleAdd(request, format=None):
     response = Response()
     user = PhisUser.objects.get(email=request.data['user_email'])
