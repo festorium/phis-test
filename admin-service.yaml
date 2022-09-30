@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: admin-service-mysql
+  labels:
+    app: admin-service-mysql
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: admin-service-mysql
+  template:
+    metadata:
+      labels:
+        app: admin-service-mysql
+    spec:
+      volumes:
+        - name: mysql-volume
+          hostPath:
+            path: /home/fedgen/storage/mysql/admin-db/
+            type: Directory
+      containers:
+      - name: web
+        image: akandeav/phisadmin:1.0.2
+        imagePullPolicy: IfNotPresent
+        command: ['/bin/bash']
+        args: ['-c','python manage.py migrate; gunicorn -w 4 adminManager.wsgi -b 0.0.0.0:80']
+        ports:
+        - containerPort: 80
+          protocol: TCP
+      - name: mysql
+        image: akandeav/phisadmin-db:latest
+        volumeMounts:
+          - name: mysql-volume
+            mountPath: /var/lib/mysql/
