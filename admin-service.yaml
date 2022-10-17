@@ -30,6 +30,7 @@ spec:
           protocol: TCP
       - name: mysql
         image: akandeav/phisadmin-db:latest
+        imagePullPolicy: IfNotPresent
         volumeMounts:
           - name: mysql-volume
             mountPath: /var/lib/mysql/
