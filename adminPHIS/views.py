@@ -44,6 +44,7 @@ def microserviceAdd(request, format=None):
         'details': 'Microservice added',
         'data': serializer.data,
     }
+    return Response(response)
 @api_view(['PUT'])
 @authenticate_admin
 def microserviceEdit(request, pk):
@@ -500,3 +501,4 @@ def getUserApplication(request, format=None):
             "ok": False,
             "details": "No application found"
         }
+    return response
