@@ -31,9 +31,9 @@ def microserviceList(request, format=None):
     return Response(response)
 
 
-@authenticated_user
-@admin_only
+
 @api_view(['POST'])
+@authenticate_admin
 def microserviceAdd(request, format=None):
     serializer = MicroserviceSerializer(data=request.data)
 
@@ -44,12 +44,8 @@ def microserviceAdd(request, format=None):
         'details': 'Microservice added',
         'data': serializer.data,
     }
-    return Response(response)
-
-
-@authenticated_user
-@admin_only
 @api_view(['PUT'])
+@authenticate_admin
 def microserviceEdit(request, pk):
     microservice = Microservice.objects.get(id=pk)
     serializer = MicroserviceSerializer(instance=microservice, data=request.data)
@@ -63,9 +59,9 @@ def microserviceEdit(request, pk):
     return Response(response)
 
 
-@authenticated_user
-@admin_only
+
 @api_view(['Patch'])
+@authenticate_admin
 def microserviceRemove(request, pk):
     microservice = Microservice.objects.get(id=pk)
     data = request.data
@@ -81,9 +77,9 @@ def microserviceRemove(request, pk):
 
 
 # Menu Views
-@authenticated_user
-@admin_only
+
 @api_view(['GET'])
+@authenticate_admin
 def menuList(request, format=None):
     menu = Menu.objects.all()
     serializer = MenuSerializer(menu, many=True)
@@ -94,10 +90,8 @@ def menuList(request, format=None):
     }
     return Response(response)
 
-
-@authenticated_user
-@admin_only
 @api_view(['POST'])
+@authenticate_admin
 def menuAdd(request, format=None):
     serializer = MenuSerializer(data=request.data)
 
@@ -127,9 +121,9 @@ def menuEdit(request, pk):
     return Response(response)
 
 
-@authenticated_user
-@admin_only
+
 @api_view(['Patch'])
+@authenticate_admin
 def menuRemove(request, pk):
     menu = Menu.objects.get(id=pk)
     data = request.data
@@ -145,9 +139,9 @@ def menuRemove(request, pk):
 
 
 # Submenu View
-@authenticated_user
-@admin_only
+
 @api_view(['POST'])
+@authenticate_admin
 def submenuAdd(request, format=None):
     serializer = SubmenuSerializer(data=request.data)
 
@@ -161,9 +155,9 @@ def submenuAdd(request, format=None):
     return Response(response)
 
 
-@authenticated_user
-@admin_only
+
 @api_view(['PUT'])
+@authenticate_admin
 def submenuEdit(request, pk):
     submenu = Submenu.objects.get(id=pk)
     serializer = SubmenuSerializer(instance=submenu, data=request.data)
@@ -177,9 +171,8 @@ def submenuEdit(request, pk):
     return Response(response)
 
 
-@authenticated_user
-@admin_only
 @api_view(['Patch'])
+@authenticate_admin
 def submenuRemove(request, pk):
     submenu = Submenu.objects.get(id=pk)
     data = request.data
@@ -207,9 +200,9 @@ def roleList(request, format=None):
     return Response(response)
 
 
-@authenticated_user
-@admin_only
+
 @api_view(['POST'])
+@authenticate_admin
 def roleAdd(request, format=None):
     serializer = GroupSerializer(data=request.data)
 
@@ -223,9 +216,9 @@ def roleAdd(request, format=None):
     return Response(response)
 
 
-@authenticated_user
-@admin_only
+
 @api_view(['PUT'])
+@authenticate_admin
 def roleEdit(request, pk):
     group = Group.objects.get(id=pk)
     serializer = GroupSerializer(instance=group, data=request.data)
@@ -238,10 +231,8 @@ def roleEdit(request, pk):
     }
     return Response(response)
 
-
-@authenticated_user
-@admin_only
 @api_view(['GET'])
+@authenticate_admin
 def roleFunctionList(request, format=None):
     permission = Permission.objects.all()
     serializer = PermissionSerializer(permission, many=True)
@@ -253,9 +244,8 @@ def roleFunctionList(request, format=None):
     return Response(response)
 
 
-@authenticated_user
-@admin_only
 @api_view(['POST'])
+@authenticate_admin
 def roleFunctionAdd(request, format=None):
     permissions = Permission.objects.get(id=request.data['pid'])
     auth_group = Group.objects.get(name=request.data['rolename'])
@@ -314,7 +304,7 @@ def userRoleList(request, format=None):
     return Response(serializer.data)
 
 
-@api_view(['GET'])
+@api_view(['POST'])
 @authenticated_user
 def userSignup(request, format=None):
     response = Response()
