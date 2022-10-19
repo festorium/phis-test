@@ -30,7 +30,6 @@ urlpatterns = [
     path('submenu-edit/<int:pk>', views.submenuEdit, name='submenu-edit'),
     path('submenu-remove/<int:pk>', views.submenuRemove, name='submenu-remove'),
 
-    path('event.user.signup', views.userSignup, name='event-user-signup'),
     path('submit.application', views.submitApplication, name='submit-application'),
     path('get.application', views.getApplication, name='get-application'),
     path('engage.application', views.engageApplication, name='engage-application'),

@@ -285,11 +285,11 @@ def userRoleAdd(request, format=None):
             "user_role": new_role
         }
         header = {'Content-Type': 'application/json', 'Authorization': request.headers.get('Authorization', None)}
-        r = requests.post('https://fedgen.ml/auth/event.assign.role', json=role_data, data=role_data, headers=header)
-        if r.ok:
-            response.data = {"ok": True, "details": "User role changed"}
-        else:
-            response.data = {"ok": False, "details": "Auth request failed"}
+        auth_request = requests.post('https://fedgen.ml/auth/event.assign.role', json=role_data, data=role_data, headers=header)
+        content_request = requests.post('https://fedgen.ml/content/event.assign.role', json=role_data, data=role_data, headers=header)
+            
+        response.data = {"ok": True, "details": "User role changed"}
+        
     else:
         response.data = {"ok": False, "details": "User not found"}
 
@@ -384,13 +384,14 @@ def engageApplication(request, format=None):
                     }
                     notification_data = {
                         "filter": "author_approve",
-                        "first_name": user.email,
+                        "first_name": user.first_name,
+                        "to": user.email,
                         "token": secret
                     }
                     # Send request to auth microservice
                     res = requests.post(AUTH_URL + '/update.user', json=auth_data, headers={'Authorization': request.headers['Authorization']})
                     # Send event to notification microservice
-                    res1 = requests.post('https://fedgen.ml/notify/author', json=notification_data, headers={'Authorization': request.headers['Authorization']})
+                    res1 = requests.post('https://fedgen.ml/notify/author', data=notification_data, json=notification_data, headers={'Authorization': request.headers['Authorization']})
                     response.data = {"ok": True, "details": "User approved as author"}
             else:
                 response.data = {"ok": False, "details": "User not found"}
@@ -402,11 +403,12 @@ def engageApplication(request, format=None):
                 user.save()
                 response.data = {"ok": True, "details": "User declined as author"}
                 notification_data = {
-                    "filter": "author_approve",
-                    "first_name": user.email,
+                    "filter": "author_declined",
+                    "first_name": user.first_name,
+                    "to": user.email,
                     "token": secret
                 }
-                res1 = requests.post('https://fedgen.ml/notify/author', json=notification_data, headers={'Authorization': request.headers['Authorization']})
+                res1 = requests.post('https://fedgen.ml/notify/author', data=notification_data, json=notification_data, headers={'Authorization': request.headers['Authorization']})
             else:
                 response.data = {"ok": False, "details": "User not found"}
         else:
