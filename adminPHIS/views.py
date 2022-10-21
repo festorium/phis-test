@@ -311,7 +311,7 @@ def userRoleList(request, format=None):
 def userSignup(request, format=None):
     response = Response()
     data = request.data
-    user = PhisUser.objects.filter(email=data['email']).first()
+    user = PhisUser.objects.filter(email=data['user_email']).first()
     if user is None:
         new_user = PhisUser(auth_user_id=data['auth_user_id'], email=data['user_email'], firstname=data['first_name'], lastname=data['last_name'], user_role=data['user_role'])
         new_user.save()
@@ -390,9 +390,9 @@ def engageApplication(request, format=None):
                         "token": secret
                     }
                     # Send request to auth microservice
-                    res = requests.post(AUTH_URL + '/update.user', json=auth_data, headers={'Authorization': request.headers['Authorization']})
+                    res = requests.post(AUTH_URL + '/update.user', json=auth_data, headers={'Content-Type': 'application/json', 'Authorization': request.headers['Authorization']})
                     # Send event to notification microservice
-                    res1 = requests.post('https://fedgen.ml/notify/author', data=notification_data, json=notification_data, headers={'Authorization': request.headers['Authorization']})
+                    res1 = requests.post('https://fedgen.ml/notify/author', data=notification_data, json=notification_data, headers={'Content-Type': 'application/json', 'Authorization': request.headers['Authorization']})
                     response.data = {"ok": True, "details": "User approved as author"}
             else:
                 response.data = {"ok": False, "details": "User not found"}
