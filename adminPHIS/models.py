@@ -139,6 +139,10 @@ class AuthorApplication(models.Model):
     status = models.CharField(max_length=2, choices=AA_STATUS, default=PENDING)
     applied_at = models.DateTimeField()
     updated_at = models.DateTimeField(null=True)
+
+class Followers(models.Model):
+    author = models.ForeignKey(PhisUser, on_delete=models.CASCADE)
+    followers = models.ManyToManyField(PhisUser)
 # class Role(models.Model):
 #     pass
 #

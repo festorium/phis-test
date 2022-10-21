@@ -1,4 +1,5 @@
 import json
+from adminPHIS.models import Followers
 
 import jwt
 import requests, os
@@ -435,6 +436,8 @@ def submitApplication(request, format=None):
                                                 research_gate=data['research_gate'], applied_at=timezone.now(),
                                                 scopus=data['scopus'], pub_med=data['pub_med'], capic_status=data['capic_status'])
                 application.save()
+                user.about = data['about']
+                user.save()
                 response.data = {"ok": True, "details": "Application submitted"}
             elif application.status == 'D':
                 application.status = 'P'
@@ -459,6 +462,8 @@ def submitApplication(request, format=None):
                                                     research_gate=data['research_gate'], applied_at=timezone.now(),
                                                     scopus=data['data'], pub_med=data['pub_med'], capic_status=data['capic_status'])
                     application.save()
+                    user.about = data['about']
+                    user.save()
                     response.data = {"ok": True, "details": "Application submitted"}
                 else:
                     response.data = {"ok": False, "details": "You have already applied"}  
@@ -487,15 +492,68 @@ def getApplication(request, format=None):
     
     return response
 
-@api_view(['POST'])
+@api_view(['GET'])
+@public_route
+def getAuthor(request, pk):
+    response = Response()
+    if request.payload is not None: # is the request made by an authourised user
+        user = PhisUSer.objects.filter(auth_user_id=request.payload['id'])
+        author = PhisUser.objects.filter(auth_user_id=pk)
+        application = AuthorApplication.objects.filter(email=author.email, status="A").first()
+        if author is not None and application is not None and user is not None:
+            follower = Followers.object.filter(author_id=author.id, followers=user).first()
+            if follower is not None:
+                isFollower = True
+            else:
+                isFollower = False
+            application = {
+                "email": application.email,
+                "gs": application.google_scholar, 
+                "status": application.status,
+                "rg": application.research_gate,
+                "sc": application.scopus,
+                "pb": application.pub_med,
+                "ace": application.capic_status,
+                "about": author.about,
+                "isFollower": isFollower,
+                "firstname": PhisUser.objects.filter(email=application.email).first().firstname,
+                "lastname": PhisUser.objects.filter(email=application.email).first().lastname
+                } 
+            response.data = {"ok": True, "data": application}
+        else:
+            response.data = {"ok": False}
+    else:
+        author = PhisUser.objects.filter(auth_user_id=pk)
+        application = AuthorApplication.objects.filter(email=author.email, status="A").first()
+        if author is not None and application is not None:
+            application = {
+                "email": application.email,
+                "gs": application.google_scholar, 
+                "status": application.status,
+                "rg": application.research_gate,
+                "sc": application.scopus,
+                "pb": application.pub_med,
+                "ace": application.capic_status,
+                "about": author.about,
+                "firstname": PhisUser.objects.filter(email=application.email).first().firstname,
+                "lastname": PhisUser.objects.filter(email=application.email).first().lastname
+                } 
+            response.data = {"ok": True, "data": application}
+        else:
+            response.data = {"ok": False}
+
+    
+    return response
+
+@api_view(['GET'])
 @authenticated_user
 def getUserApplication(request, format=None):
     response = Response()
-    app = AuthorApplication.objects.filter(email=request.data['email'])
-    if app is not None:
+    user = PhisUser.objects.filter(auth_user_id=request.payload['id'])
+    application = AuthorApplication.objects.filter(email=user.email)
+    if application is not None:
         response.data = {
             "ok": True,
-            "gs": app.google_scholar,
             "status": app.status
         }
     else:
@@ -504,3 +562,58 @@ def getUserApplication(request, format=None):
             "details": "No application found"
         }
     return response
+
+@api_view(['POST'])
+@authenticated_user
+def followAuthor(request, format=None):
+    response = Response()
+    author_id = request.data['author_id']
+    phis_user_id = request.payload['id']
+    phis_user = PhisUser.objects.filter(auth_user_id=phis_user_id).first()
+    author = PhisUser.objects.filter(auth_user_id=author_id).first()
+    followers = Followers.objects.filter(author_id=author_id).first()
+    if followers is not None and author.user_role != "P":
+        follower = followers.followers.get(phis_user)
+        if follower is None:
+            followers.followers.add(phis_user)
+            response.data = {
+                "ok": True,
+                "details": "Followed"
+            }
+        else:
+            response.data = {
+                "ok": False,
+                "details": "User already a follower"
+            }
+    elif followers is None and author.user_role != "P":
+        new_followers = Followers(author=author)
+        new_followers.save()
+        new_followers.followers.add(phis_user)
+        new_followers.save()
+        response.data = {
+                "ok": True,
+                "details": "Followed"
+            }
+
+@api_view(['PATCH'])
+@authenticated_user
+def unFollowAuthor(request, format=None):
+    response = Response()
+    author_id = request.data['author_id']
+    phis_user_id = request.payload['id']
+    phis_user = PhisUser.objects.filter(auth_user_id=phis_user_id).first()
+    author = PhisUser.objects.filter(auth_user_id=author_id).first()
+    followers = Followers.objects.filter(author_id=author_id, followers=phis_user).first()
+    if followers is not None :
+        followers.followers.remove(phis_user)
+        followers.save()
+        response.data = {
+            "ok": True,
+            "details": "UnFollowed"
+        }
+    else:
+        response.data = {
+                "ok": False,
+                "details": "Invalid request: user is not a follower"
+            }
+
