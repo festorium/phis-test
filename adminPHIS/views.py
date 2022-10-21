@@ -317,7 +317,7 @@ def userSignup(request, format=None):
         new_user.save()
         response.data = {
             "ok": True,
-            "email": data['email']
+            "email": data['user_email']
         }
     else:
         response.data = {
