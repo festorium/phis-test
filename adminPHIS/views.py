@@ -496,7 +496,7 @@ def getApplication(request, format=None):
 @public_route
 def getAuthor(request, pk):
     response = Response()
-    if request.payload is not None: # is the request made by an authourised user
+    try: # is the request made by an authourised user
         user = PhisUSer.objects.filter(auth_user_id=request.payload['id'])
         author = PhisUser.objects.filter(auth_user_id=pk)
         application = AuthorApplication.objects.filter(email=author.email, status="A").first()
@@ -522,7 +522,7 @@ def getAuthor(request, pk):
             response.data = {"ok": True, "data": application}
         else:
             response.data = {"ok": False}
-    else:
+    except AttributeError:
         author = PhisUser.objects.filter(auth_user_id=pk)
         application = AuthorApplication.objects.filter(email=author.email, status="A").first()
         if author is not None and application is not None:
