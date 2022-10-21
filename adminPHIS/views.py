@@ -32,7 +32,6 @@ def microserviceList(request, format=None):
     return Response(response)
 
 
-
 @api_view(['POST'])
 @authenticate_admin
 def microserviceAdd(request, format=None):
@@ -76,7 +75,6 @@ def microserviceRemove(request, pk):
         'data': serializer.data,
     }
     return Response(response)
-
 
 # Menu Views
 
@@ -285,9 +283,9 @@ def userRoleAdd(request, format=None):
             "user_email": request.data['user_email'],
             "user_role": new_role
         }
-        header = {'Content-Type': 'application/json', 'Authorization': request.headers.get('Authorization', None)}
-        auth_request = requests.post('https://fedgen.ml/auth/event.assign.role', json=role_data, data=role_data, headers=header)
-        content_request = requests.post('https://fedgen.ml/content/event.assign.role', json=role_data, data=role_data, headers=header)
+        header = {'Authorization': request.headers.get('Authorization', None)}
+        auth_request = requests.post('https://fedgen.ml/auth/event.assign.role',  data=role_data, headers=header)
+        content_request = requests.post('https://fedgen.ml/content/event.assign.role', data=role_data, headers=header)
             
         response.data = {"ok": True, "details": "User role changed"}
         
@@ -390,9 +388,9 @@ def engageApplication(request, format=None):
                         "token": secret
                     }
                     # Send request to auth microservice
-                    res = requests.post(AUTH_URL + '/update.user', json=auth_data, headers={'Content-Type': 'application/json', 'Authorization': request.headers['Authorization']})
+                    res = requests.post(AUTH_URL + '/update.user', json=auth_data, headers={'Authorization': request.headers['Authorization']})
                     # Send event to notification microservice
-                    res1 = requests.post('https://fedgen.ml/notify/author', data=notification_data, json=notification_data, headers={'Content-Type': 'application/json', 'Authorization': request.headers['Authorization']})
+                    res1 = requests.post('https://fedgen.ml/notify/author', data=notification_data, headers={'Authorization': request.headers['Authorization']})
                     response.data = {"ok": True, "details": "User approved as author"}
             else:
                 response.data = {"ok": False, "details": "User not found"}
