@@ -21,7 +21,7 @@ spec:
             type: Directory
       containers:
       - name: web
-        image: akandeav/phisadmin:1.0.3
+        image: akandeav/phisadmin:1.0.local
         imagePullPolicy: IfNotPresent
         command: ['/bin/bash']
         args: ['-c','python manage.py migrate; gunicorn -w 4 adminManager.wsgi -b 0.0.0.0:80']
