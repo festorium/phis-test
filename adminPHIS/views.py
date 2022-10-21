@@ -497,7 +497,7 @@ def getApplication(request, format=None):
 def getAuthor(request, pk):
     response = Response()
     try: # is the request made by an authourised user
-        user = PhisUSer.objects.filter(auth_user_id=request.payload['id'])
+        user = PhisUser.objects.filter(auth_user_id=request.payload['id'])
         author = PhisUser.objects.filter(auth_user_id=pk)
         application = AuthorApplication.objects.filter(email=author.email, status="A").first()
         if author is not None and application is not None and user is not None:
