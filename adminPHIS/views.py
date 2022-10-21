@@ -317,7 +317,7 @@ def userSignup(request, format=None):
         new_user.save()
         response.data = {
             "ok": True,
-            "data": serializer.data
+            "email": data['email']
         }
     else:
         response.data = {
