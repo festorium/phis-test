@@ -501,7 +501,7 @@ def getAuthor(request, pk):
         author = PhisUser.objects.filter(auth_user_id=pk)
         application = AuthorApplication.objects.filter(email=author.email, status="A").first()
         if author is not None and application is not None and user is not None:
-            follower = Followers.object.filter(author_id=author.id, followers=user).first()
+            follower = Followers.object.filter(author_email=author.email, followers=user).first()
             if follower is not None:
                 isFollower = True
             else:
@@ -571,7 +571,7 @@ def followAuthor(request, format=None):
     phis_user_id = request.payload['id']
     phis_user = PhisUser.objects.filter(auth_user_id=phis_user_id).first()
     author = PhisUser.objects.filter(auth_user_id=author_id).first()
-    followers = Followers.objects.filter(author_id=author_id).first()
+    followers = Followers.objects.filter(author_email=author.email).first()
     if followers is not None and author.user_role != "P":
         follower = followers.followers.get(phis_user)
         if follower is None:
@@ -586,7 +586,7 @@ def followAuthor(request, format=None):
                 "details": "User already a follower"
             }
     elif followers is None and author.user_role != "P":
-        new_followers = Followers(author=author)
+        new_followers = Followers(author_email=author.email)
         new_followers.save()
         new_followers.followers.add(phis_user)
         new_followers.save()
@@ -603,7 +603,7 @@ def unfollowAuthor(request, format=None):
     phis_user_id = request.payload['id']
     phis_user = PhisUser.objects.filter(auth_user_id=phis_user_id).first()
     author = PhisUser.objects.filter(auth_user_id=author_id).first()
-    followers = Followers.objects.filter(author_id=author_id, followers=phis_user).first()
+    followers = Followers.objects.filter(author_email=author.email, followers=phis_user).first()
     if followers is not None :
         followers.followers.remove(phis_user)
         followers.save()

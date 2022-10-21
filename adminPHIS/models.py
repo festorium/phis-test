@@ -141,7 +141,7 @@ class AuthorApplication(models.Model):
     updated_at = models.DateTimeField(null=True)
 
 class Followers(models.Model):
-    author = models.ForeignKey(PhisUser, on_delete=models.CASCADE)
+    author_email = models.EmailField(_('email address'), unique=True)
     followers = models.ManyToManyField(PhisUser)
 # class Role(models.Model):
 #     pass
