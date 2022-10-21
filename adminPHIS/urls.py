@@ -34,6 +34,9 @@ urlpatterns = [
     path('get.application', views.getApplication, name='get-application'),
     path('engage.application', views.engageApplication, name='engage-application'),
     path('get.user.application', views.getUserApplication, name='user-application'),
+    path('author', views.getAuthor, name='get-author'),
+    path('follow', views.followAuthor, name='follow-author'),
+    path('unfollow', views.unfollowAuthor, name='unfollow-author'),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)

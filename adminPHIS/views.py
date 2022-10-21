@@ -10,7 +10,7 @@ from .models import AuthorApplication, Microservice, Menu, Submenu, PhisUser, Po
 from .serializers import MicroserviceSerializer, GroupSerializer, MenuSerializer, PermissionSerializer, \
     SubmenuSerializer, PhisUserSerializer, PostSerializer
 from rest_framework.decorators import api_view
-from .roles import authenticate_admin, authenticated_user, admin_only
+from .roles import authenticate_admin, authenticated_user, admin_only, public_route
 from django.utils import timezone
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
@@ -597,7 +597,7 @@ def followAuthor(request, format=None):
 
 @api_view(['PATCH'])
 @authenticated_user
-def unFollowAuthor(request, format=None):
+def unfollowAuthor(request, format=None):
     response = Response()
     author_id = request.data['author_id']
     phis_user_id = request.payload['id']
