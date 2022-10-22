@@ -31,6 +31,8 @@ def public_route(view_func):
             
             
         else:
+            payload = None
+            request.payload = payload
             return view_func(request, *args, **kwargs)
 
     return wrapper_func

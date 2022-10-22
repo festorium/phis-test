@@ -573,7 +573,9 @@ def followAuthor(request, format=None):
     if followers is not None and author.user_role != "P":
         follower = followers.followers.get(phis_user)
         if follower is None:
-            followers.followers.add(phis_user)
+            follower.followers.add(phis_user)
+            follower.number_followers += 1
+            follower.save()
             response.data = {
                 "ok": True,
                 "details": "Followed"
@@ -586,6 +588,7 @@ def followAuthor(request, format=None):
     elif followers is None and author.user_role != "P":
         new_followers = Followers(author_email=author.email)
         new_followers.save()
+        new_followers.number_followers = 0
         new_followers.followers.add(phis_user)
         new_followers.save()
         response.data = {
@@ -604,6 +607,7 @@ def unfollowAuthor(request, format=None):
     followers = Followers.objects.filter(author_email=author.email, followers=phis_user).first()
     if followers is not None :
         followers.followers.remove(phis_user)
+        followers.number_followers -= 1
         followers.save()
         response.data = {
             "ok": True,

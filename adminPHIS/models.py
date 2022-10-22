@@ -143,6 +143,7 @@ class AuthorApplication(models.Model):
 class Followers(models.Model):
     author_email = models.EmailField(_('email address'), unique=True)
     followers = models.ManyToManyField(PhisUser)
+    number_followers = models.IntegerField(default=0)
 # class Role(models.Model):
 #     pass
 #
