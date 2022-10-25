@@ -18,8 +18,13 @@ def public_route(view_func):
     # These requests have no users, only JWT
     def wrapper_func(request, *args, **kwargs):
         request.user = None
-        jwt_token = request.headers.get('Authorization', None)
-        if jwt_token:
+        jwt_token = request.headers.get('Authorization')
+        if not jwt_token:
+            payload = None
+            request.payload = payload
+            return view_func(request, *args, **kwargs)
+    
+        else:
             try:
                 payload = jwt.decode(jwt_token, JWT_SECRET,
                                      algorithms=[JWT_ALGORITHM])
@@ -29,11 +34,6 @@ def public_route(view_func):
             except (jwt.DecodeError, jwt.ExpiredSignatureError):
                 raise AuthenticationFailed('Unathenticated')
             
-            
-        else:
-            payload = None
-            request.payload = payload
-            return view_func(request, *args, **kwargs)
 
     return wrapper_func
 
