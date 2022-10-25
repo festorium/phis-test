@@ -499,7 +499,7 @@ def getAuthor(request, pk):
         author = PhisUser.objects.filter(auth_user_id=pk).first()
         application = AuthorApplication.objects.filter(email=author.email, status="A").first()
         if author is not None and application is not None and user is not None:
-            follower = AuthorApplication.objects.filter(author_email=author.email, followers=user).first()
+            follower = AuthorApplication.objects.filter(email=author.email, followers=user).first()
             if follower is not None:
                 isFollower = True
             else:
