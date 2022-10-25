@@ -139,11 +139,14 @@ class AuthorApplication(models.Model):
     status = models.CharField(max_length=2, choices=AA_STATUS, default=PENDING)
     applied_at = models.DateTimeField()
     updated_at = models.DateTimeField(null=True)
-
-class Followers(models.Model):
-    author_email = models.EmailField(_('email address'), unique=True)
     followers = models.ManyToManyField(PhisUser)
     number_followers = models.IntegerField(default=0)
+
+class Followers(models.Model):
+    author_email = models.EmailField(unique=True)
+    followers = models.ManyToManyField(PhisUser)
+    number_followers = models.IntegerField(default=0)
+
 # class Role(models.Model):
 #     pass
 #
