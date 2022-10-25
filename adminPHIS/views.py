@@ -499,7 +499,7 @@ def getAuthor(request, pk):
         author = PhisUser.objects.filter(auth_user_id=pk).first()
         application = AuthorApplication.objects.filter(email=author.email, status="A").first()
         if author is not None and application is not None and user is not None:
-            follower = AuthorApplication.objects.get(email=author.email, followers__id=user.id)
+            follower = AuthorApplication.objects.get(email=author.email, followers__email=user.email)
             if follower is not None:
                 isFollower = True
             else:
@@ -569,7 +569,7 @@ def followAuthor(request, format=None):
     phis_user_id = request.payload['id']
     phis_user = PhisUser.objects.filter(auth_user_id=phis_user_id).first()
     author = PhisUser.objects.filter(auth_user_id=author_id).first()
-    followers = AuthorApplication.objects.get(email=author.email, followers__id=phis_user_id)
+    followers = AuthorApplication.objects.get(email=author.email, followers__email=phis_user.email)
     if followers is not None and author.user_role != "P":
         followers.followers.add(phis_user)
         follower.number_followers += 1
@@ -594,7 +594,7 @@ def unfollowAuthor(request, format=None):
     phis_user_id = request.payload['id']
     phis_user = PhisUser.objects.filter(auth_user_id=phis_user_id).first()
     author = PhisUser.objects.filter(auth_user_id=author_id).first()
-    followers = AuthorApplication.objects.get(email=author.email, followers__id=phis_user_id)
+    followers = AuthorApplication.objects.get(email=author.email, followers__email=phis_user.email)
     if followers is not None and author.user_role != "P":
         followers.followers.remove(phis_user)
         followers.number_followers -= 1
