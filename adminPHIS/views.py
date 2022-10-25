@@ -496,7 +496,7 @@ def getAuthor(request, pk):
     response = Response()
     if request.payload is not None: # is the request made by an authourised user
         user = PhisUser.objects.filter(auth_user_id=request.payload['id'])
-        author = PhisUser.objects.filter(auth_user_id=pk)
+        author = PhisUser.objects.filter(auth_user_id=pk).first()
         application = AuthorApplication.objects.filter(email=author.email, status="A").first()
         if author is not None and application is not None and user is not None:
             follower = AuthorApplication.objects.filter(author_email=author.email, followers=user).first()
