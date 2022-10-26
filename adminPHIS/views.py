@@ -519,6 +519,7 @@ def getAuthor(request, pk):
                 "ace": application.capic_status,
                 "about": author.about,
                 "isFollower": isFollower,
+                "number_followers": application.number_followers,
                 "firstname": PhisUser.objects.filter(email=application.email).first().firstname,
                 "lastname": PhisUser.objects.filter(email=application.email).first().lastname
                 } 
@@ -538,6 +539,7 @@ def getAuthor(request, pk):
                 "pb": application.pub_med,
                 "ace": application.capic_status,
                 "about": author.about,
+                "number_followers": application.number_followers,
                 "firstname": PhisUser.objects.filter(email=application.email).first().firstname,
                 "lastname": PhisUser.objects.filter(email=application.email).first().lastname
                 } 
