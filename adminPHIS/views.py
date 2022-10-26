@@ -499,9 +499,13 @@ def getAuthor(request, pk):
         author = PhisUser.objects.filter(auth_user_id=pk).first()
         application = AuthorApplication.objects.filter(email=author.email, status="A").first()
         if author is not None and application is not None and user is not None:
-            follower = application.followers_data.get(user.auth_user_id)
+            follower = application.followers_data
             if follower is not None:
-                isFollower = True
+                find = follower.get(user.auth_user_id)
+                if find is not None:
+                    isFollower = True
+                else:
+                    isFollower = False
             else:
                 isFollower = False
             application = {
@@ -571,20 +575,32 @@ def followAuthor(request, format=None):
     author = PhisUser.objects.filter(auth_user_id=author_id).first()
     application = AuthorApplication.objects.get(email=author.email)
     if application is not None and author.user_role != "P":
-        followers = application.followers_data.get(phis_user_id)
-        if followers is None:
+        followers = application.followers_data
+        if followers is not None:
+            find = followers.get(user.auth_user_id)
+            if find is None:
+                application.number_followers += 1
+                application.followers_data[phis_user_id] = phis_user_id
+                application.save()
+                response.data = {
+                    "ok": True,
+                    "details": "Followed"
+                }
+            else:
+                response.data = {
+                        "ok": False,
+                        "details": "User already a follower"
+                    }
+        else:
             application.number_followers += 1
-            application.followers_data[phis_user_id] = phis_user_id
+            data = {phis_user_id: phis_user_id}
+            application.followers_data = data
+            application.number_followers = 0
             application.save()
             response.data = {
                 "ok": True,
                 "details": "Followed"
             }
-        else:
-            response.data = {
-                    "ok": False,
-                    "details": "User already a follower"
-                }
             
     else:
         response.data = {
@@ -603,19 +619,29 @@ def unfollowAuthor(request, format=None):
     author = PhisUser.objects.filter(auth_user_id=author_id).first()
     application = AuthorApplication.objects.get(email=author.email)
     if application is not None and author.user_role != "P":
-        followers = application.followers_data.get(phis_user_id)
+        followers = application.followers_data
         if followers is not None:
-            application.followers_data.pop(phis_user_id)
-            application.number_followers -= 1
+            find = followers.get(phis_user_id)
+            if find is not None:
+                application.followers_data.pop(phis_user_id)
+                application.number_followers -= 1
+                application.save()
+                response.data = {
+                    "ok": True,
+                    "details": "UnFollowed"
+                }
+            else:
+                response.data = {
+                    "ok": False,
+                    "details": "Invalid request: user is not a follower"
+                }
+        else:
+            application.followers_data = {}
+            application.number_followers = 0
             application.save()
             response.data = {
-                "ok": True,
-                "details": "UnFollowed"
-            }
-        else:
-            response.data = {
                 "ok": False,
-                "details": "Invalid request: user is not a follower"
+                "details": "Cannot unfollow"
             }
 
     else:
