@@ -434,7 +434,6 @@ def submitApplication(request, format=None):
                                                 research_gate=data['research_gate'], applied_at=timezone.now(),
                                                 scopus=data['scopus'], pub_med=data['pub_med'], capic_status=data['capic_status'])
                 application.save()
-                user.about = data['about']
                 user.save()
                 response.data = {"ok": True, "details": "Application submitted"}
             elif application.status == 'D':
@@ -460,7 +459,6 @@ def submitApplication(request, format=None):
                                                     research_gate=data['research_gate'], applied_at=timezone.now(),
                                                     scopus=data['data'], pub_med=data['pub_med'], capic_status=data['capic_status'])
                     application.save()
-                    user.about = data['about']
                     user.save()
                     response.data = {"ok": True, "details": "Application submitted"}
                 else:
