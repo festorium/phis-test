@@ -495,13 +495,14 @@ def getApplication(request, format=None):
 def getAuthor(request, pk):
     response = Response()
     if request.payload is not None: # is the request made by an authourised user
+        phis_user_id = request.payload['id']
         user = PhisUser.objects.filter(auth_user_id=request.payload['id'])
         author = PhisUser.objects.filter(auth_user_id=pk).first()
         application = AuthorApplication.objects.filter(email=author.email, status="A").first()
         if author is not None and application is not None and user is not None:
             follower = application.followers_data
             if follower is not None:
-                find = follower.get(user.auth_user_id)
+                find = follower.get(phis_user_id)
                 if find is not None:
                     isFollower = True
                 else:
@@ -577,7 +578,7 @@ def followAuthor(request, format=None):
     if application is not None and author.user_role != "P":
         followers = application.followers_data
         if followers is not None:
-            find = followers.get(user.auth_user_id)
+            find = followers.get(phis_user_id)
             if find is None:
                 application.number_followers += 1
                 application.followers_data[phis_user_id] = phis_user_id
