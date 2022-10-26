@@ -568,6 +568,48 @@ def getUserApplication(request, format=None):
         }
     return response
 
+@api_view(['GET'])
+@authenticated_user
+def getUserBio(request, format=None):
+    response = Response()
+    user = PhisUser.objects.filter(auth_user_id=request.payload['id'])
+    if user is not None:
+        response.data = {
+            "ok": True,
+            "bio": user.about
+        }
+    else:
+        response.data = {
+            "ok": False,
+            "details": "No user found"
+        }
+    return response
+
+@api_view(['PATCH'])
+@authenticated_user
+def updateUserBio(request, format=None):
+    response = Response()
+    user = PhisUser.objects.filter(auth_user_id=request.payload['id'])
+    try:
+        bio = request.data['bio']
+        if user is not None:
+            user.about = bio
+            user.save()
+            response.data = {
+                "ok": True
+            }
+        else:
+            response.data = {
+                "ok": False,
+                "details": "No user found"
+            }
+    except KeyError:
+        response.data = {
+                "ok": False,
+                "details": "Invalid request"
+            }
+    return response
+
 @api_view(['POST'])
 @authenticated_user
 def followAuthor(request, format=None):
@@ -653,3 +695,5 @@ def unfollowAuthor(request, format=None):
                 "details": "Invalid request: Author does not exist"
             }
     return response
+
+
