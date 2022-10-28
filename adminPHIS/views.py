@@ -550,19 +550,43 @@ def getAuthor(request, pk):
 
 @api_view(['GET'])
 @authenticated_user
-def getUserApplication(request, format=None):
+def getUser(request, format=None):
     response = Response()
     user = PhisUser.objects.filter(auth_user_id=request.payload['id'])
     application = AuthorApplication.objects.filter(email=user.email)
     if application is not None:
         response.data = {
             "ok": True,
-            "status": app.status
+            "author": True,
+            "application": {
+                "email": application.email,
+                "gs": application.google_scholar, 
+                "status": application.status,
+                "rg": application.research_gate,
+                "sc": application.scopus,
+                "pb": application.pub_med,
+                "ace": application.capic_status,
+                "number_followers": application.number_followers,
+                } ,
+            "user": {
+                "email": user.email,
+                "firstname": user.firstname,
+                "lastname": user.lastname,
+                "about": user.about,
+                "role": user.user_role
+            }
         }
     else:
         response.data = {
-            "ok": False,
-            "details": "No application found"
+            "ok": True,
+            "author": False,
+            "user": {
+                "email": user.email,
+                "firstname": user.firstname,
+                "lastname": user.lastname,
+                "about": user.about,
+                "role": user.user_role
+            }
         }
     return response
 
