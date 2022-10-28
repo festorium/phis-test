@@ -39,6 +39,8 @@ urlpatterns = [
     path('update.bio', views.updateUserBio, name='update-bio'),
     path('follow', views.followAuthor, name='follow-author'),
     path('unfollow', views.unfollowAuthor, name='unfollow-author'),
+    path('users', views.getUser, name='get-user'),
+    path('update-author', views.UpdateAuthor, name='update-author'),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)
