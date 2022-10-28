@@ -590,6 +590,29 @@ def getUser(request, format=None):
         }
     return response
 
+@api_view(['PATCH'])
+@authenticated_user
+def UpdateAuthor(request, format=None):
+    response = Response()
+    data = request.data
+    user = PhisUser.objects.filter(auth_user_id=request.payload['id'])
+    application = AuthorApplication.objects.filter(email=user.email)
+    if application is not None:
+        application.google_scholar = data.google_scholar
+        application.research_gate = data.research_gate
+        application.scopus = data.scopus
+        application.pub_med = data.pub_med
+        application.capic_status = data.capic_status
+        application.save()
+        response.data = {
+            "ok": True,
+        }
+    else:
+        response.data = {
+            "ok": False
+        }
+    return response
+
 @api_view(['GET'])
 @authenticated_user
 def getUserBio(request, format=None):
