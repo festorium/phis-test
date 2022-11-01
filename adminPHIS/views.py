@@ -554,7 +554,7 @@ def getUser(request, format=None):
     response = Response()
     user = PhisUser.objects.filter(auth_user_id=request.payload['id']).first()
     application = AuthorApplication.objects.filter(email=user.email).first()
-    if application is not None:
+    if application is not None and user is not None:
         response.data = {
             "ok": True,
             "author": True,
@@ -576,7 +576,7 @@ def getUser(request, format=None):
                 "role": user.user_role
             }
         }
-    else:
+    elif user is not None and application is None:
         response.data = {
             "ok": True,
             "author": False,
@@ -588,6 +588,12 @@ def getUser(request, format=None):
                 "role": user.user_role
             }
         }
+    else:
+        response.data = {
+            "ok": False,
+            "message": "NotFound"
+        }
+        response.status_code = 404
     return response
 
 @api_view(['PATCH'])
@@ -597,7 +603,7 @@ def UpdateAuthor(request, format=None):
     data = request.data
     user = PhisUser.objects.filter(auth_user_id=request.payload['id'])
     application = AuthorApplication.objects.filter(email=user.email)
-    if application is not None:
+    if application is not None and user is not None:
         application.google_scholar = data.google_scholar
         application.research_gate = data.research_gate
         application.scopus = data.scopus
@@ -659,86 +665,115 @@ def updateUserBio(request, format=None):
 @authenticated_user
 def followAuthor(request, format=None):
     response = Response()
-    author_id = request.data['author_id']
-    phis_user_id = request.payload['id']
-    phis_user = PhisUser.objects.filter(auth_user_id=phis_user_id).first()
-    author = PhisUser.objects.filter(auth_user_id=author_id).first()
-    application = AuthorApplication.objects.get(email=author.email)
-    if application is not None and author.user_role != "P":
-        followers = application.followers_data
-        if followers is not None:
-            find = followers.get(phis_user_id)
-            if find is None:
-                application.number_followers += 1
-                application.followers_data[phis_user_id] = phis_user_id
-                application.save()
-                response.data = {
-                    "ok": True,
-                    "details": "Followed"
-                }
+    try:
+        author_id = request.data['author_id']
+        phis_user_id = request.payload['id']
+        phis_user = PhisUser.objects.filter(auth_user_id=phis_user_id).first()
+        author = PhisUser.objects.filter(auth_user_id=author_id).first()
+        application = AuthorApplication.objects.get(email=author.email)
+        if application is not None and author is not None and phis_user is not None:
+            if author.user_role != 'P':
+                followers = application.followers_data
+                if followers is not None:
+                    find = followers.get(phis_user_id)
+                    if find is None:
+                        application.number_followers += 1
+                        application.followers_data[phis_user_id] = phis_user_id
+                        application.save()
+                        response.data = {
+                            "ok": True,
+                            "details": "Followed"
+                        }
+                    else:
+                        response.data = {
+                                "ok": False,
+                                "details": "User already a follower"
+                            }
+                else:
+                    application.number_followers += 1
+                    data = {phis_user_id: phis_user_id}
+                    application.followers_data = data
+                    application.number_followers = 0
+                    application.save()
+                    response.data = {
+                        "ok": True,
+                        "details": "Followed"
+                    }
             else:
                 response.data = {
-                        "ok": False,
-                        "details": "User already a follower"
-                    }
+                    "ok": False,
+                    "details": "Author not Found"
+                }
+                
         else:
-            application.number_followers += 1
-            data = {phis_user_id: phis_user_id}
-            application.followers_data = data
-            application.number_followers = 0
-            application.save()
-            response.data = {
-                "ok": True,
-                "details": "Followed"
-            }
-            
-    else:
-        response.data = {
+            response.data ={
                 "ok": False,
-                "details": "Author not Found"
+                "message": "BadRequest"
             }
+            response.status_code = 400
+    except KeyError:
+        response.data ={
+            "ok": False,
+            "message": "BadRequest"
+        }
+        response.status_code = 400
     return response
 
 @api_view(['PATCH'])
 @authenticated_user
 def unfollowAuthor(request, format=None):
     response = Response()
-    author_id = request.data['author_id']
-    phis_user_id = request.payload['id']
-    phis_user = PhisUser.objects.filter(auth_user_id=phis_user_id).first()
-    author = PhisUser.objects.filter(auth_user_id=author_id).first()
-    application = AuthorApplication.objects.get(email=author.email)
-    if application is not None and author.user_role != "P":
-        followers = application.followers_data
-        if followers is not None:
-            find = followers.get(phis_user_id)
-            if find is not None:
-                application.followers_data.pop(phis_user_id)
-                application.number_followers -= 1
-                application.save()
-                response.data = {
-                    "ok": True,
-                    "details": "UnFollowed"
-                }
+    try:
+        author_id = request.data['author_id']
+        phis_user_id = request.payload['id']
+        phis_user = PhisUser.objects.filter(auth_user_id=phis_user_id).first()
+        author = PhisUser.objects.filter(auth_user_id=author_id).first()
+        application = AuthorApplication.objects.get(email=author.email)
+        if application is not None and author is not None and phis_user is not None:
+            if author.user_role != 'P':
+                followers = application.followers_data
+                if followers is not None:
+                    find = followers.get(phis_user_id)
+                    if find is not None:
+                        application.followers_data.pop(phis_user_id)
+                        application.number_followers -= 1
+                        application.save()
+                        response.data = {
+                            "ok": True,
+                            "details": "UnFollowed"
+                        }
+                    else:
+                        response.data = {
+                            "ok": False,
+                            "details": "Invalid request: user is not a follower"
+                        }
+                else:
+                    application.followers_data = {}
+                    application.number_followers = 0
+                    application.save()
+                    response.data = {
+                        "ok": False,
+                        "details": "Cannot unfollow"
+                    }
             else:
-                response.data = {
+                response.data ={
                     "ok": False,
-                    "details": "Invalid request: user is not a follower"
+                    "message": "BadRequest"
                 }
-        else:
-            application.followers_data = {}
-            application.number_followers = 0
-            application.save()
-            response.data = {
-                "ok": False,
-                "details": "Cannot unfollow"
-            }
+                response.status_code = 400
 
-    else:
-        response.data = {
+        else:
+            response.data ={
                 "ok": False,
-                "details": "Invalid request: Author does not exist"
+                "message": "BadRequest"
             }
+            response.status_code = 400
+    except KeyError:
+        response.data ={
+            "ok": False,
+            "message": "BadRequest"
+        }
+        response.status_code = 400
     return response
 
 
