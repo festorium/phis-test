@@ -601,8 +601,8 @@ def getUser(request, format=None):
 def UpdateAuthor(request, format=None):
     response = Response()
     data = request.data
-    user = PhisUser.objects.filter(auth_user_id=request.payload['id'])
-    application = AuthorApplication.objects.filter(email=user.email)
+    user = PhisUser.objects.filter(auth_user_id=request.payload['id']).first()
+    application = AuthorApplication.objects.filter(email=user.email).first()
     if application is not None and user is not None:
         application.google_scholar = data.google_scholar
         application.research_gate = data.research_gate
@@ -623,7 +623,7 @@ def UpdateAuthor(request, format=None):
 @authenticated_user
 def getUserBio(request, format=None):
     response = Response()
-    user = PhisUser.objects.filter(auth_user_id=request.payload['id'])
+    user = PhisUser.objects.filter(auth_user_id=request.payload['id']).first()
     if user is not None:
         response.data = {
             "ok": True,
@@ -640,7 +640,7 @@ def getUserBio(request, format=None):
 @authenticated_user
 def updateUserBio(request, format=None):
     response = Response()
-    user = PhisUser.objects.filter(auth_user_id=request.payload['id'])
+    user = PhisUser.objects.filter(auth_user_id=request.payload['id']).first()
     try:
         bio = request.data['bio']
         if user is not None:
