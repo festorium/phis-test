@@ -367,7 +367,8 @@ def engageApplication(request, format=None):
         filter = request.data['filter']
         if filter == "approve":
             user = AuthorApplication.objects.filter(email=request.data['email']).first()
-            if user is not None:
+            phis_user = PhisUser.objects.filter(email=request.data['email']).first()
+            if user is not None and phis_user is not None:
                 auth_req = requests.post(AUTH_URL + '/event.assign.role', json={"user_email": request.data['email'], "user_role": "A"}, headers={'Authorization': request.headers['Authorization']})
                 if auth_req.ok:
                     user.status = 'A'
@@ -379,12 +380,13 @@ def engageApplication(request, format=None):
                         "research_gate": user.research_gate,
                         "scopus": user.scopus,
                         "pub_med": user.pub_med,
-                        "capic_status": user.capic_status
+                        "capic_status": user.capic_status,
+                        "email": phis_user.email
                     }
                     notification_data = {
                         "filter": "author_approve",
-                        "first_name": user.first_name,
-                        "to": user.email,
+                        "first_name": phis_user.first_name,
+                        "to": phis_user.email,
                         "token": secret
                     }
                     # Send request to auth microservice
@@ -396,15 +398,16 @@ def engageApplication(request, format=None):
                 response.data = {"ok": False, "details": "User not found"}
         elif filter == "declined":
             user = AuthorApplication.objects.filter(email=request.data['email']).first()
-            if user is not None:
+            phis_user = PhisUser.objects.filter(email=request.data['email']).first()
+            if user is not None and phis_user is not None:
                 user.status = 'D'
                 user.updated_at = timezone.now()
                 user.save()
                 response.data = {"ok": True, "details": "User declined as author"}
                 notification_data = {
                     "filter": "author_declined",
-                    "first_name": user.first_name,
-                    "to": user.email,
+                    "first_name": phis_user.first_name,
+                    "to": phis_user.email,
                     "token": secret
                 }
                 res1 = requests.post('https://fedgen.ml/notify/author', data=notification_data, json=notification_data, headers={'Authorization': request.headers['Authorization']})
