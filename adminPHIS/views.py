@@ -17,6 +17,7 @@ from django.contrib.contenttypes.models import ContentType
 from jwt.exceptions import ExpiredSignatureError
 
 AUTH_URL = 'https://fedgen.ml/auth'
+CONTENT_URL = "https://fedgen/ml/content"
 secret = os.environ['JWT_SECRET_KEY']
 # Microservice
 @api_view(['GET'])
@@ -283,9 +284,13 @@ def userRoleAdd(request, format=None):
             "user_email": request.data['user_email'],
             "user_role": new_role
         }
+        content_data = {
+            "auth_user_id": user.auth_user_id,
+            "user_role": new_role
+        }
         header = {'Authorization': request.headers.get('Authorization', None)}
-        auth_request = requests.post('https://fedgen.ml/auth/event.assign.role',  data=role_data, headers=header)
-        content_request = requests.post('https://fedgen.ml/content/event.assign.role', data=role_data, headers=header)
+        auth_request = requests.post('https://fedgen.ml/auth/event.assign.role',  json=role_data, headers=header)
+        content_request = requests.post('https://fedgen.ml/content/event.assign.role', json=content_data, headers=header)
             
         response.data = {"ok": True, "details": "User role changed"}
         
@@ -371,6 +376,7 @@ def engageApplication(request, format=None):
             if user is not None and phis_user is not None:
                 auth_req = requests.post(AUTH_URL + '/event.assign.role', json={"user_email": request.data['email'], "user_role": "A"}, headers={'Authorization': request.headers['Authorization']})
                 if auth_req.ok:
+                    requests.post(CONTENT_URL + '/event.assign.role', json={"auth_user_id": phis_user.auth_user_id, "user_role": "A"}, headers={'Authorization': request.headers['Authorization']})
                     user.status = 'A'
                     user.updated_at = timezone.now()
                     user.save()
@@ -392,7 +398,7 @@ def engageApplication(request, format=None):
                     # Send request to auth microservice
                     res = requests.post(AUTH_URL + '/update.user', json=auth_data, headers={'Authorization': request.headers['Authorization']})
                     # Send event to notification microservice
-                    res1 = requests.post('https://fedgen.ml/notify/author', data=notification_data, headers={'Authorization': request.headers['Authorization']})
+                    res1 = requests.post('https://fedgen.ml/notify/author', json=notification_data, headers={'Authorization': request.headers['Authorization']})
                     response.data = {"ok": True, "details": "User approved as author"}
             else:
                 response.data = {"ok": False, "details": "User not found"}
@@ -410,7 +416,7 @@ def engageApplication(request, format=None):
                     "to": phis_user.email,
                     "token": secret
                 }
-                res1 = requests.post('https://fedgen.ml/notify/author', data=notification_data, json=notification_data, headers={'Authorization': request.headers['Authorization']})
+                res1 = requests.post('https://fedgen.ml/notify/author', json=notification_data, headers={'Authorization': request.headers['Authorization']})
             else:
                 response.data = {"ok": False, "details": "User not found"}
         else:
