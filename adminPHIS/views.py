@@ -391,7 +391,7 @@ def engageApplication(request, format=None):
                     }
                     notification_data = {
                         "filter": "author_approve",
-                        "first_name": phis_user.first_name,
+                        "first_name": phis_user.firstname,
                         "to": phis_user.email,
                         "token": secret
                     }
@@ -412,7 +412,7 @@ def engageApplication(request, format=None):
                 response.data = {"ok": True, "details": "User declined as author"}
                 notification_data = {
                     "filter": "author_declined",
-                    "first_name": phis_user.first_name,
+                    "first_name": phis_user.firstname,
                     "to": phis_user.email,
                     "token": secret
                 }
