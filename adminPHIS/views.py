@@ -613,11 +613,11 @@ def UpdateAuthor(request, format=None):
     user = PhisUser.objects.filter(auth_user_id=request.payload['id']).first()
     application = AuthorApplication.objects.filter(email=user.email).first()
     if application is not None and user is not None:
-        application.google_scholar = data.google_scholar
-        application.research_gate = data.research_gate
-        application.scopus = data.scopus
-        application.pub_med = data.pub_med
-        application.capic_status = data.capic_status
+        application.google_scholar = data['google_scholar']
+        application.research_gate = data['research_gate']
+        application.scopus = data['scopus']
+        application.pub_med = data['pub_med']
+        application.capic_status = data['capic_status']
         application.save()
         response.data = {
             "ok": True,
