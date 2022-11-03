@@ -378,8 +378,10 @@ def engageApplication(request, format=None):
                 if auth_req.ok:
                     requests.post(CONTENT_URL + '/event.assign.role', json={"auth_user_id": phis_user.auth_user_id, "user_role": "A"}, headers={'Authorization': request.headers['Authorization']})
                     user.status = 'A'
+                    phis_user.user_role = "A"
                     user.updated_at = timezone.now()
                     user.save()
+                    phis_user.save()
                     auth_data = {
                         "filter": "author",
                         "google_scholar": user.google_scholar,
