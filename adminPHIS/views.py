@@ -695,11 +695,13 @@ def followAuthor(request, format=None):
                             "ok": True,
                             "details": "Followed"
                         }
+                        response.status_code = 200
                     else:
                         response.data = {
                                 "ok": False,
                                 "details": "User already a follower"
                             }
+                        response.status_code = 409
                 else:
                     application.number_followers += 1
                     data = {phis_user_id: phis_user_id}
@@ -710,11 +712,13 @@ def followAuthor(request, format=None):
                         "ok": True,
                         "details": "Followed"
                     }
+                    response.status_code = 200
             else:
                 response.data = {
                     "ok": False,
                     "details": "Author not Found"
                 }
+                response.status_code = 404
                 
         else:
             response.data ={
@@ -745,7 +749,7 @@ def unfollowAuthor(request, format=None):
                 followers = application.followers_data
                 if followers is not None:
                     find = followers.get(phis_user_id)
-                    if find is not None:
+                    if find is not None and application.number_followers != 0:
                         application.followers_data.pop(phis_user_id)
                         application.number_followers -= 1
                         application.save()
@@ -753,11 +757,19 @@ def unfollowAuthor(request, format=None):
                             "ok": True,
                             "details": "UnFollowed"
                         }
+                        response.status_code = 200
+                    elif find is not None and application.number_followers == 0:
+                        response.data = {
+                            "ok": False,
+                            "details": "Invalid request"
+                        }
+                        response.status_code = 400
                     else:
                         response.data = {
                             "ok": False,
                             "details": "Invalid request: user is not a follower"
                         }
+                        response.status_code = 400
                 else:
                     application.followers_data = {}
                     application.number_followers = 0
