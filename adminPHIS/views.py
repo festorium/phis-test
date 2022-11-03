@@ -562,7 +562,7 @@ def getAuthor(request, pk):
 def getUser(request, format=None):
     response = Response()
     user = PhisUser.objects.filter(auth_user_id=request.payload['id']).first()
-    application = AuthorApplication.objects.filter(email=user.email).first()
+    application = AuthorApplication.objects.filter(email=user.email, status="A").first()
     if application is not None and user is not None:
         response.data = {
             "ok": True,
