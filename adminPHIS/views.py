@@ -17,7 +17,7 @@ from django.contrib.contenttypes.models import ContentType
 from jwt.exceptions import ExpiredSignatureError
 
 AUTH_URL = 'https://fedgen.ml/auth'
-CONTENT_URL = "https://fedgen/ml/content"
+CONTENT_URL = "https://fedgen.ml/content"
 secret = os.environ['JWT_SECRET_KEY']
 # Microservice
 @api_view(['GET'])
