@@ -46,7 +46,7 @@ class PhisUser(AbstractBaseUser, PermissionsMixin):
     user_role = models.CharField(max_length=2, blank=True)
     startDate = models.DateTimeField(default=timezone.now)
     about = models.TextField(_(
-        'about'), max_length=500, blank=True)
+        'about'), max_length=1000, blank=True)
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
 
