@@ -706,7 +706,6 @@ def followAuthor(request, format=None):
                     application.number_followers += 1
                     data = {phis_user_id: phis_user_id}
                     application.followers_data = data
-                    application.number_followers = 0
                     application.save()
                     response.data = {
                         "ok": True,
