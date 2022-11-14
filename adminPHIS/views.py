@@ -104,8 +104,7 @@ def menuAdd(request, format=None):
         menu.save()
         response = {
             'ok': 'True',
-            'details': 'Menu added',
-            'data': serializer.data,
+            'details': 'Menu added'
         }
         response.status_code = 201
     else:
