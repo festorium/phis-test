@@ -98,8 +98,7 @@ def menuAdd(request, format=None):
     user_id = PhisUser.objects.filter(auth_user_id=request.data['user_id']).first().id
     microservice_id = Microservice.objects.filter(microserviceName=request.data['microservice']).first().id
     
-    data = request.data
-    
+    data = request.data    
     data['user_id'] = user_id
     data['microservice_id'] = microservice_id
     
