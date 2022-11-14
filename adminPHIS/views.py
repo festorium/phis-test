@@ -101,7 +101,7 @@ def menuAdd(request, format=None):
     data = request.data
     
     data['user_id'] = user_id
-    data['microservice_id'] = microservice_id
+    data['microservice'] = microservice_id
     
     serializer = MenuSerializer(data=data)
 
