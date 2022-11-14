@@ -103,13 +103,13 @@ def menuAdd(request, format=None):
     if user is not None and microservice is not None and menu is None:
         menu = Menu(user=user, microservice=microservice, menuname=data['menuname'], menustatus=data['menustatus'], comment=data['comment'])
         menu.save()
-        response = {
+        response.data = {
             'ok': 'True',
             'details': 'Menu added'
         }
         response.status_code = 201
     else:
-        response = {
+        response.data = {
             'ok': False,
             "details": "Duplicate"
         }
