@@ -73,8 +73,8 @@ class Microservice(models.Model):
 
 
 class Menu(models.Model):
-    microservice_id = models.ForeignKey(Microservice, on_delete=models.CASCADE)
-    user_id = models.ForeignKey(PhisUser, on_delete=models.CASCADE, null=True, blank=True)
+    microservice = models.ForeignKey(Microservice, on_delete=models.CASCADE)
+    user = models.ForeignKey(PhisUser, on_delete=models.CASCADE, null=True, blank=True)
     menuname = models.CharField(max_length=200)
     comment = models.TextField(max_length=400)
     menustatus = models.CharField(max_length=200, default='active', editable=False)
