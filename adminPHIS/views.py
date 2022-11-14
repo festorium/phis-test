@@ -94,7 +94,16 @@ def menuList(request, format=None):
 @api_view(['POST'])
 @authenticate_admin
 def menuAdd(request, format=None):
-    serializer = MenuSerializer(data=request.data)
+    # Missing User and Microservice Object
+    user_id = PhisUser.objects.filter(auth_user_id=request.data['user_id']).first().id
+    microservice_id = Microservice.objects.filter(microserviceName=request.data['microservice']).first().id
+    
+    data = request.data
+    
+    data['user_id'] = user_id
+    data['microservice_id'] = microservice_id
+    
+    serializer = MenuSerializer(data=data)
 
     if serializer.is_valid():
         serializer.save()
@@ -104,6 +113,7 @@ def menuAdd(request, format=None):
         'data': serializer.data,
     }
     return Response(response)
+
 
 
 @authenticated_user
