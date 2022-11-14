@@ -45,6 +45,7 @@ class PhisUser(AbstractBaseUser, PermissionsMixin):
     auth_user_id = models.CharField(max_length=150, blank=True)
     user_role = models.CharField(max_length=2, blank=True)
     startDate = models.DateTimeField(default=timezone.now)
+    following_data = models.JSONField(null=True)
     about = models.TextField(_(
         'about'), max_length=1000, blank=True)
     is_staff = models.BooleanField(default=False)
@@ -73,8 +74,8 @@ class Microservice(models.Model):
 
 
 class Menu(models.Model):
-    microservice_id = models.ForeignKey(Microservice, on_delete=models.CASCADE)
-    user_id = models.ForeignKey(PhisUser, on_delete=models.CASCADE, null=True, blank=True)
+    microservice = models.ForeignKey(Microservice, on_delete=models.CASCADE)
+    user = models.ForeignKey(PhisUser, on_delete=models.CASCADE, null=True, blank=True)
     menuname = models.CharField(max_length=200)
     comment = models.TextField(max_length=400)
     menustatus = models.CharField(max_length=200, default='active', editable=False)

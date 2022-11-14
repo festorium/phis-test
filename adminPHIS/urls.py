@@ -40,6 +40,8 @@ urlpatterns = [
     path('unfollow', views.unfollowAuthor, name='unfollow-author'),
     path('users', views.getUser, name='get-user'),
     path('update-author', views.UpdateAuthor, name='update-author'),
+    path('following', views.getFollowing, name='following'),
 ]
+
 
 urlpatterns = format_suffix_patterns(urlpatterns)
