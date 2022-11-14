@@ -99,7 +99,8 @@ def menuAdd(request, format=None):
     user = PhisUser.objects.filter(auth_user_id=request.data['user_id']).first()
     microservice = Microservice.objects.filter(microserviceName=request.data['microservice']).first()
     data = request.data
-    if user is not None and microservice is not None:
+    menu = Menu.objects.find(menuname=data['menuname']).first()
+    if user is not None and microservice is not None and menu is None:
         menu = Menu(user=user, microservice=microservice, menuname=data['menuname'], menustatus=data['menustatus'], comment=data['comment'])
         menu.save()
         response = {
@@ -110,9 +111,9 @@ def menuAdd(request, format=None):
     else:
         response = {
             'ok': False,
-            "details": "NotFound"
+            "details": "Duplicate"
         }
-        response.status_code = 404
+        response.status_code = 409
     return response
 
 
