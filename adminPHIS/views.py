@@ -94,7 +94,7 @@ def menuList(request, format=None):
 @api_view(['POST'])
 @authenticate_admin
 def menuAdd(request, format=None):
-    # Missing User and Microservice Object
+   
     user_id = PhisUser.objects.filter(auth_user_id=request.data['user_id']).first().id
     microservice_id = Microservice.objects.filter(microserviceName=request.data['microservice']).first().id
     
@@ -108,7 +108,7 @@ def menuAdd(request, format=None):
         serializer.save()
     response = {
         'ok': 'True',
-        'details': 'Menu added',
+        'details': 'Menu added successfully',
         'data': serializer.data,
     }
     return Response(response)
