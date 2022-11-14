@@ -95,24 +95,26 @@ def menuList(request, format=None):
 @api_view(['POST'])
 @authenticate_admin
 def menuAdd(request, format=None):
+    response = Response()
     user = PhisUser.objects.filter(auth_user_id=request.data['user_id']).first()
     microservice = Microservice.objects.filter(microserviceName=request.data['microservice']).first()
-    
     data = request.data
-    
-    data['user'] = user
-    data['microservice'] = microservice
-    
-    serializer = MenuSerializer(data=data)
-
-    if serializer.is_valid():
-        serializer.save()
-    response = {
-        'ok': 'True',
-        'details': 'Menu added',
-        'data': serializer.data,
-    }
-    return Response(response)
+    if user is not None and microservice is not None:
+        menu = Menu(user=User, microservice=microservice, menuname=data['menuname'], menustatus=data['menustatus'], comment=data['comment'])
+        menu.save()
+        response = {
+            'ok': 'True',
+            'details': 'Menu added',
+            'data': serializer.data,
+        }
+        response.status_code = 201
+    else:
+        response = {
+            'ok': False,
+            "details": "NotFound"
+        }
+        response.status_code = 404
+    return response
 
 
 
