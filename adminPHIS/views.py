@@ -100,7 +100,7 @@ def menuAdd(request, format=None):
     microservice = Microservice.objects.filter(microserviceName=request.data['microservice']).first()
     data = request.data
     if user is not None and microservice is not None:
-        menu = Menu(user=User, microservice=microservice, menuname=data['menuname'], menustatus=data['menustatus'], comment=data['comment'])
+        menu = Menu(user=user, microservice=microservice, menuname=data['menuname'], menustatus=data['menustatus'], comment=data['comment'])
         menu.save()
         response = {
             'ok': 'True',
