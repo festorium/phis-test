@@ -19,6 +19,7 @@ from jwt.exceptions import ExpiredSignatureError
 AUTH_URL = 'https://fedgen.ml/auth'
 CONTENT_URL = "https://fedgen.ml/content"
 secret = os.environ['JWT_SECRET_KEY']
+page = 10
 # Microservice
 @api_view(['GET'])
 def microserviceList(request, format=None):
@@ -94,24 +95,26 @@ def menuList(request, format=None):
 @api_view(['POST'])
 @authenticate_admin
 def menuAdd(request, format=None):
-   
-    user_id = PhisUser.objects.filter(auth_user_id=request.data['user_id']).first().id
-    microservice_id = Microservice.objects.filter(microserviceName=request.data['microservice']).first().id
-    
-    data = request.data    
-    data['user_id'] = user_id
-    data['microservice_id'] = microservice_id
-    
-    serializer = MenuSerializer(data=data)
-
-    if serializer.is_valid():
-        serializer.save()
-    response = {
-        'ok': 'True',
-        'details': 'Menu added successfully',
-        'data': serializer.data,
-    }
-    return Response(response)
+    response = Response()
+    user = PhisUser.objects.filter(auth_user_id=request.data['user_id']).first()
+    microservice = Microservice.objects.filter(microserviceName=request.data['microservice']).first()
+    data = request.data
+    menu = Menu.objects.filter(menuname=data['menuname']).first()
+    if user is not None and microservice is not None and menu is None:
+        menu = Menu(user=user, microservice=microservice, menuname=data['menuname'], menustatus=data['menustatus'], comment=data['comment'])
+        menu.save()
+        response.data = {
+            'ok': 'True',
+            'details': 'Menu added'
+        }
+        response.status_code = 201
+    else:
+        response.data = {
+            'ok': False,
+            "details": "Duplicate"
+        }
+        response.status_code = 409
+    return response
 
 
 
@@ -517,7 +520,7 @@ def getAuthor(request, pk):
         user = PhisUser.objects.filter(auth_user_id=request.payload['id'])
         author = PhisUser.objects.filter(auth_user_id=pk).first()
         application = AuthorApplication.objects.filter(email=author.email, status="A").first()
-        if author is not None and application is not None and user is not None:
+        if author is not None and application is not None and user is not None: # If request is from a logged in user
             follower = application.followers_data
             if follower is not None:
                 find = follower.get(phis_user_id)
@@ -544,7 +547,7 @@ def getAuthor(request, pk):
             response.data = {"ok": True, "data": application}
         else:
             response.data = {"ok": False}
-    else:
+    else: # If is a public request
         author = PhisUser.objects.filter(auth_user_id=pk).first()
         application = AuthorApplication.objects.filter(email=author.email, status="A").first()
         if author is not None and application is not None:
@@ -698,8 +701,19 @@ def followAuthor(request, format=None):
                     find = followers.get(phis_user_id)
                     if find is None:
                         application.number_followers += 1
-                        application.followers_data[phis_user_id] = phis_user_id
+                        application.followers_data[phis_user_id] = {
+                            "auth_user_id": phis_user_id, 
+                            "firstname": phis_user.firstname, 
+                            "lastname": phis_user.lastname
+                            }
                         application.save()
+
+                        phis_user.following_data[author_id] = {
+                            "auth_user_id": author_id, 
+                            "firstname": author.firstname, 
+                            "lastname": author.lastname
+                        }
+                        phis_user.save()
                         response.data = {
                             "ok": True,
                             "details": "Followed"
@@ -761,6 +775,10 @@ def unfollowAuthor(request, format=None):
                         application.followers_data.pop(phis_user_id)
                         application.number_followers -= 1
                         application.save()
+
+                        phis_user.following_data.pop(author_id)
+                        phis_user.save()
+
                         response.data = {
                             "ok": True,
                             "details": "UnFollowed"
@@ -806,5 +824,17 @@ def unfollowAuthor(request, format=None):
         }
         response.status_code = 400
     return response
+
+@api_view(['GET'])
+@authenticated_user
+def getFollowing(request, format=None):
+    phis_user_id = request.payload['id']
+    phis_user = PhisUser.objects.filter(auth_user_id=phis_user_id).first()
+    response = Response()
+    response.data = {
+        "data": phis_user.following_data
+    }
+    response.status_code = 200
+    return response 
 
 

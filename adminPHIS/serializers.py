@@ -46,7 +46,7 @@ class PermissionSerializer(serializers.ModelSerializer):
 class MenuSerializer(serializers.ModelSerializer):
     class Meta:
         model = Menu
-        fields = ('id', 'menuname', 'comment', 'microservice_id', 'user_id', 'menustatus')
+        fields = ('id', 'menuname', 'comment', 'user', 'microservice', 'menustatus')
 
 
 class SubmenuSerializer(serializers.ModelSerializer):
