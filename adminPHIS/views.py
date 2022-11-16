@@ -156,16 +156,27 @@ def menuRemove(request, pk):
 @api_view(['POST'])
 @authenticate_admin
 def submenuAdd(request, format=None):
-    serializer = SubmenuSerializer(data=request.data)
-
-    if serializer.is_valid():
-        serializer.save()
-    response = {
-        'ok': 'True',
-        'details': 'Submenu added',
-        'data': serializer.data,
-    }
-    return Response(response)
+    response = Response()
+    user = PhisUser.objects.filter(auth_user_id=request.data['user_id']).first()
+    menu = Menu.objects.filter(menuname=request.data['menu']).first()
+    data = request.data
+    submenu = Submenu.objects.filter(submenuname=data['submenuname']).first()
+    
+    if user is not None and menu is not None and submenu is None:
+        submenu = Submenu(user=user, menu=menu, submenuname=data['submenuname'], comment=data['comment'], submenuroute=data['submenuroute'], submenudescription=data['submenudescription'], submenustatus=data['submenustatus'])
+        submenu.save()
+        response.data = {
+            'ok': 'True',
+            'details': 'Submenu added'
+        }
+        response.status_code = 201
+    else:
+        response.data = {
+            'ok': False,
+            "details": "Duplicate"
+        }
+        response.status_code = 409
+    return response
 
 
 
