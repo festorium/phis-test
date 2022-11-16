@@ -67,7 +67,7 @@ def authenticate_admin(view_func):
             try:
                 payload = jwt.decode(jwt_token, JWT_SECRET,
                                      algorithms=[JWT_ALGORITHM])
-                if payload['role'] == "S":
+                if payload['user_role'] == "S":
                     return view_func(request, *args, **kwargs)
                 else:
                     raise AuthenticationFailed('Unauthorized access')
