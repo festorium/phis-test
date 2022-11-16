@@ -81,7 +81,7 @@ def microserviceRemove(request, pk):
 # Menu Views
 
 @api_view(['GET'])
-@authenticate_admin
+# @authenticate_admin
 def menuList(request, format=None):
     menu = Menu.objects.all()
     serializer = MenuSerializer(menu, many=True)
