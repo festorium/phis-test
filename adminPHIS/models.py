@@ -70,7 +70,7 @@ class Microservice(models.Model):
         return self.microserviceName
 
     class Meta:
-        ordering = ['-id']
+        ordering = ['id']
 
 
 class Menu(models.Model):
@@ -86,7 +86,7 @@ class Menu(models.Model):
         return self.menuname
 
     class Meta:
-        ordering = ['-id']
+        ordering = ['id']
 
 
 class Submenu(models.Model):
@@ -104,7 +104,7 @@ class Submenu(models.Model):
         return self.submenuname
 
     class Meta:
-        ordering = ['-id']
+        ordering = ['id']
 
 
 class Post(models.Model):
