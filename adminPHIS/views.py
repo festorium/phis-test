@@ -47,18 +47,22 @@ def microserviceAdd(request, format=None):
         'data': serializer.data,
     }
     return Response(response)
-@api_view(['PUT'])
+@api_view(['PATCH'])
 @authenticate_admin
 def microserviceEdit(request, pk):
     microservice = Microservice.objects.get(id=pk)
-    serializer = MicroserviceSerializer(instance=microservice, data=request.data)
-    if serializer.is_valid():
+    if microservice is not None:
+        serializer = MicroserviceSerializer(microservice, data=request.data, partial=True)
         serializer.save()
-    response = {
-        'ok': 'True',
-        'details': 'Microservice edited',
-        'data': serializer.data,
-    }
+        response = {
+            'ok': True,
+            'details': 'Microservice edited',
+        }
+    else:
+        response = {
+            'ok': False,
+            'details': 'NotFound',
+        }
     return Response(response)
 
 
@@ -119,23 +123,27 @@ def menuAdd(request, format=None):
 
 
 @authenticated_user
-@admin_only
-@api_view(['PUT'])
+@api_view(['PATCH'])
 def menuEdit(request, pk):
+    data = request.data
     menu = Menu.objects.get(id=pk)
-    serializer = MenuSerializer(instance=menu, data=request.data)
-    if serializer.is_valid():
+    if menu is not None:
+        serializer = MenuSerializer(menu, data=data, partial=True)
         serializer.save()
-    response = {
-        'ok': 'True',
-        'details': 'Menu edited',
-        'data': serializer.data,
-    }
+        response = {
+            'ok': True,
+            'details': 'Menu edited',
+        }
+    else:
+        response = {
+            'ok': False,
+            'details': 'NotFound'
+        }
     return Response(response)
 
 
 
-@api_view(['Patch'])
+@api_view(['PATCH'])
 @authenticate_admin
 def menuRemove(request, pk):
     menu = Menu.objects.get(id=pk)
