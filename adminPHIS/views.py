@@ -130,11 +130,12 @@ def menuEdit(request, pk):
     menu = Menu.objects.get(id=pk)
     if menu is not None:
         serializer = MenuSerializer(menu, data=data, partial=True)
-        serializer.save()
-        response = {
-            'ok': True,
-            'details': 'Menu edited',
-        }
+        if serializer.is_valid():
+            serializer.save()
+            response = {
+                'ok': True,
+                'details': 'Menu edited',
+            }
     else:
         response = {
             'ok': False,
