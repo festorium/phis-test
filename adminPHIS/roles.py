@@ -55,7 +55,7 @@ def authenticated_user(view_func):
             
             
         else:
-            raise exceptions.AuthenticationFailed("Authorization header is not present")
+            raise AuthenticationFailed("Authorization header is not present")
 
     return wrapper_func
 

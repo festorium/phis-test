@@ -22,6 +22,7 @@ secret = os.environ['JWT_SECRET_KEY']
 page = 10
 # Microservice
 @api_view(['GET'])
+@authenticate_admin
 def microserviceList(request, format=None):
     microservice = Microservice.objects.all()
     serializer = MicroserviceSerializer(microservice, many=True)
@@ -53,11 +54,12 @@ def microserviceEdit(request, pk):
     microservice = Microservice.objects.get(id=pk)
     if microservice is not None:
         serializer = MicroserviceSerializer(microservice, data=request.data, partial=True)
-        serializer.save()
-        response = {
-            'ok': True,
-            'details': 'Microservice edited',
-        }
+        if serializer.is_valid():
+            serializer.save()
+            response = {
+                'ok': True,
+                'details': 'Microservice edited',
+            }
     else:
         response = {
             'ok': False,
@@ -121,9 +123,8 @@ def menuAdd(request, format=None):
     return response
 
 
-
-@authenticated_user
 @api_view(['PATCH'])
+@authenticated_user
 def menuEdit(request, pk):
     data = request.data
     menu = Menu.objects.get(id=pk)
