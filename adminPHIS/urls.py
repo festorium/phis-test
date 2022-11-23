@@ -27,6 +27,7 @@ urlpatterns = [
     path('menu-remove/<int:pk>', views.menuRemove, name='menu-remove'),
 
     path('submenu-add', views.submenuAdd, name='submenu-add'),
+    path('submenu-list', views.submenuList, name='submenu-list'),
     path('submenu-edit/<int:pk>', views.submenuEdit, name='submenu-edit'),
     path('submenu-remove/<int:pk>', views.submenuRemove, name='submenu-remove'),
 

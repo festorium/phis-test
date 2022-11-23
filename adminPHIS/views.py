@@ -163,6 +163,19 @@ def menuRemove(request, pk):
 
 # Submenu View
 
+@api_view(['GET'])
+@authenticate_admin
+def submenuList(request, format=None):
+    submenu = Submenu.objects.all()
+    serializer = SubmenuSerializer(submenu, many=True)
+    response = {
+        'ok': 'True',
+        'details': 'List of Submenu',
+        'data': serializer.data,
+    }
+    return Response(response)
+
+
 @api_view(['POST'])
 @authenticate_admin
 def submenuAdd(request, format=None):
@@ -190,18 +203,24 @@ def submenuAdd(request, format=None):
 
 
 
-@api_view(['PUT'])
+@api_view(['PATCH'])
 @authenticate_admin
 def submenuEdit(request, pk):
+    data = request.data
     submenu = Submenu.objects.get(id=pk)
-    serializer = SubmenuSerializer(instance=submenu, data=request.data)
-    if serializer.is_valid():
-        serializer.save()
-    response = {
-        'ok': 'True',
-        'details': 'Submenu edited',
-        'data': serializer.data,
-    }
+    if submenu is not None:
+        serializer = SubmenuSerializer(submenu, data=data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            response = {
+                'ok': True,
+                'details': 'Submenu edited',
+            }
+    else:
+        response = {
+            'ok': False,
+            'details': 'NotFound'
+        }
     return Response(response)
 
 
