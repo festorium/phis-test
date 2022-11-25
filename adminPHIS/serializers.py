@@ -52,4 +52,10 @@ class MenuSerializer(serializers.ModelSerializer):
 class SubmenuSerializer(serializers.ModelSerializer):
     class Meta:
         model = Submenu
-        fields = ('id', 'menu', 'submenuname', 'submenuroute', 'submenudescription', 'comment', 'submenustatus')
+        fields = ('id', 'menu', 'submenuname', 'submenuroute', 'submenudescription', 'comment', 'role', 'submenustatus')
+
+
+class RoleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Submenu
+        fields = ('id', 'rolename', 'roledescription', 'rolestatus', 'comment', 'user')

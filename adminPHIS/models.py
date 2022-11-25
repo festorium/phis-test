@@ -78,7 +78,7 @@ class Menu(models.Model):
     user = models.ForeignKey(PhisUser, on_delete=models.CASCADE, null=True, blank=True)
     menuname = models.CharField(max_length=200)
     comment = models.TextField(max_length=400)
-    menustatus = models.CharField(max_length=200, default='active', editable=False)
+    menustatus = models.CharField(max_length=200)
     menuupdated = models.DateTimeField(auto_now=True)
     menucreated = models.DateTimeField(auto_now_add=True)
 
@@ -96,7 +96,8 @@ class Submenu(models.Model):
     submenuroute = models.CharField(max_length=300)
     submenudescription = models.CharField(max_length=200)
     comment = models.TextField(max_length=400)
-    submenustatus = models.CharField(max_length=200, default='active', editable=False)
+    role = models.ManyToManyField(Role)
+    submenustatus = models.CharField(max_length=200)
     submenuupdated = models.DateTimeField(auto_now=True)
     submenucreated = models.DateTimeField(auto_now_add=True)
 
@@ -148,9 +149,20 @@ class Followers(models.Model):
     followers = models.ManyToManyField(PhisUser)
     number_followers = models.IntegerField(default=0)
 
-# class Role(models.Model):
-#     pass
-#
-#
+class Role(models.Model):
+    user = models.ForeignKey(PhisUser, on_delete=models.CASCADE)
+    rolename = models.CharField(max_length=200)
+    roleshortname = models.CharField(max_length=200)
+    comment = models.TextField(max_length=400)
+    rolestatus = models.CharField(max_length=200)
+    roledescription = models.CharField(max_length=400)
+    roleupdated = models.DateTimeField(auto_now=True)
+    rolecreated = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.rolename
+
+    class Meta:
+        ordering = ['rolecreated']
 # class Criteria(models.Model):
 #     pass

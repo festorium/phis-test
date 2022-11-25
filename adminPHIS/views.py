@@ -257,16 +257,25 @@ def roleList(request, format=None):
 @api_view(['POST'])
 @authenticate_admin
 def roleAdd(request, format=None):
-    serializer = GroupSerializer(data=request.data)
-
-    if serializer.is_valid():
-        serializer.save()
-    response = {
-        'ok': 'True',
-        'details': 'Role added',
-        'data': serializer.data,
-    }
-    return Response(response)
+    response = Response()
+    user = PhisUser.objects.filter(auth_user_id=request.data['user_id']).first()
+    data = request.data
+    role = Role.objects.filter(rolename=data['rolename']).first()
+    if user is not None and role is None:
+        role = Role(user=user, rolename=data['rolename'], roleshortname=data['roleshortname'], roledescription=data['roledescription'], rolestatus=data['rolestatus'], comment=data['comment'])
+        role.save()
+        response.data = {
+            'ok': 'True',
+            'details': 'Role added'
+        }
+        response.status_code = 201
+    else:
+        response.data = {
+            'ok': False,
+            "details": "Duplicate"
+        }
+        response.status_code = 409
+    return response
 
 
 
