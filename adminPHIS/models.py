@@ -48,6 +48,7 @@ class PhisUser(AbstractBaseUser, PermissionsMixin):
     following_data = models.JSONField(null=True)
     about = models.TextField(_(
         'about'), max_length=1000, blank=True)
+    profile_picture = models.CharField(max_length=250, default="/media/profiles/default.png")
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
 
@@ -88,7 +89,23 @@ class Menu(models.Model):
     class Meta:
         ordering = ['menucreated']
 
+class Role(models.Model):
+    user = models.ForeignKey(PhisUser, on_delete=models.CASCADE)
+    rolename = models.CharField(max_length=200)
+    roleshortname = models.CharField(max_length=200)
+    comment = models.TextField(max_length=400)
+    rolestatus = models.CharField(max_length=200)
+    roledescription = models.CharField(max_length=400)
+    roleupdated = models.DateTimeField(auto_now=True)
+    rolecreated = models.DateTimeField(auto_now_add=True)
 
+    def __str__(self):
+        return self.rolename
+
+    class Meta:
+        ordering = ['rolecreated']
+        
+        
 class Submenu(models.Model):
     user = models.ForeignKey(PhisUser, on_delete=models.CASCADE)
     menu = models.ForeignKey(Menu, on_delete=models.CASCADE)
@@ -149,20 +166,6 @@ class Followers(models.Model):
     followers = models.ManyToManyField(PhisUser)
     number_followers = models.IntegerField(default=0)
 
-class Role(models.Model):
-    user = models.ForeignKey(PhisUser, on_delete=models.CASCADE)
-    rolename = models.CharField(max_length=200)
-    roleshortname = models.CharField(max_length=200)
-    comment = models.TextField(max_length=400)
-    rolestatus = models.CharField(max_length=200)
-    roledescription = models.CharField(max_length=400)
-    roleupdated = models.DateTimeField(auto_now=True)
-    rolecreated = models.DateTimeField(auto_now_add=True)
 
-    def __str__(self):
-        return self.rolename
-
-    class Meta:
-        ordering = ['rolecreated']
 # class Criteria(models.Model):
 #     pass

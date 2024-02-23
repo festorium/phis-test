@@ -1,12 +1,12 @@
 from rest_framework import serializers
-from .models import Microservice, Menu, PhisUser, Submenu
+from .models import Microservice, Menu, PhisUser, Submenu, Role
 from django.contrib.auth.models import Group, Permission
 
 
 class PhisUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = PhisUser
-        fields = ('id', 'email', 'firstname', 'lastname')
+        fields = ('id', 'email', 'firstname', 'lastname', 'user_role', 'auth_user_id')
 
 
 class PostSerializer(serializers.ModelSerializer):
@@ -48,14 +48,14 @@ class MenuSerializer(serializers.ModelSerializer):
         model = Menu
         fields = ('id', 'menuname', 'comment', 'user', 'microservice', 'menustatus')
 
+class RoleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Role
+        fields = ('id', 'rolename', 'roleshortname', 'roledescription', 'rolestatus', 'comment', 'user')
+
 
 class SubmenuSerializer(serializers.ModelSerializer):
     class Meta:
         model = Submenu
         fields = ('id', 'menu', 'submenuname', 'submenuroute', 'submenudescription', 'comment', 'role', 'submenustatus')
-
-
-class RoleSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Submenu
-        fields = ('id', 'rolename', 'roledescription', 'rolestatus', 'comment', 'user')
+        depth = 1

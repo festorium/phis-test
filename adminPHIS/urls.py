@@ -14,8 +14,10 @@ urlpatterns = [
     path('role-add', views.roleAdd, name='role-add'),
     path('role-edit/<int:pk>', views.roleEdit, name='role-edit'),
     path('rolefunc-list', views.roleFunctionList, name='rolefunc-list'),
-    path('rolefunc-add', views.roleFunctionAdd, name='role-add'),
-    path('userrole-add', views.userRoleAdd, name='userrole-add'),
+    path('rolefunc-add', views.roleFunctionAdd, name='rolefunc-add'),
+    path('userrole-add', views.userRoleAdd, name='userrole-add'),    
+    path('rolefunc-remove', views.roleFunctionRem, name='rolefunc-remove'),    
+    path('userrole-remove', views.userRoleRem, name='userrole-remove'),
 
     path('event.user.signup', views.userSignup, name='event-user-signup'),
     path('event.create.post', views.createPost, name='event-create-post'),
@@ -42,6 +44,9 @@ urlpatterns = [
     path('users', views.getUser, name='get-user'),
     path('update-author', views.UpdateAuthor, name='update-author'),
     path('following', views.getFollowing, name='following'),
+    path('event.set.profile.picture', views.setProfilePicture, name='set-profile-picture'),
+    path('applied', views.hasUserAppliedToBeAuthor, name='applied'),
+    path('get.profile.picture/<str:user_id>', views.get_profile_picture, name='get-profile-picture')
 ]
 
 

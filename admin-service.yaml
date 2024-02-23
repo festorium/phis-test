@@ -1,36 +1,118 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: admin-service-mysql
-  labels:
-    app: admin-service-mysql
+  name: admin-service
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: admin-service-mysql
+      app: admin-service
+  strategy:
+    type: Recreate
   template:
     metadata:
       labels:
-        app: admin-service-mysql
+        app: admin-service
     spec:
-      volumes:
-        - name: mysql-volume
-          hostPath:
-            path: /home/fedgen/storage/mysql/admin-db/
-            type: Directory
       containers:
       - name: web
-        image: akandeav/phisadmin:1.0.local
-        imagePullPolicy: IfNotPresent
-        command: ['/bin/bash']
-        args: ['-c','python manage.py migrate; gunicorn -w 4 adminManager.wsgi -b 0.0.0.0:80']
+        image: fedgen/admin:latest
         ports:
         - containerPort: 80
           protocol: TCP
-      - name: mysql
-        image: akandeav/phisadmin-db:latest
         imagePullPolicy: IfNotPresent
+        command: ['sh', '-c', 'python manage.py migrate && gunicorn -w 4 adminManager.wsgi -b 0.0.0.0:80']
         volumeMounts:
-          - name: mysql-volume
-            mountPath: /var/lib/mysql/
+        - name: mysql-data-admin
+          mountPath: /var/lib/mysql/
+      - name: mysql-admin
+        image: mysql:latest
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: password
+        ports:
+        - containerPort: 3306
+          name: mysql-admin
+        volumeMounts:
+        - name: mysql-data-admin
+          mountPath: /var/lib/mysql/      
+      volumes:
+      - name: mysql-data-admin
+        persistentVolumeClaim:
+          claimName: mysql-pvc-admin
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: admin-mysql-service
+spec:
+  selector:
+    app: admin-service
+  ports:
+  - protocol: TCP
+    port: 3306
+    targetPort: 3306
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: admin-web-service
+spec:
+  selector:
+    app: admin-service
+  type: NodePort
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+
+
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: traefik
+# spec:
+#   ports:
+#     - protocol: TCP
+#       name: web
+#       port: 8000
+#     - protocol: TCP
+#       name: admin
+#       port: 8080
+#     - protocol: TCP
+#       name: websecure
+#       port: 4443
+#   selector:
+#     app: traefik
+
+---
+# apiVersion: traefik.containo.us/v1alpha1
+# kind: IngressRoute
+# metadata:
+#   name: admin-service-ingress-secure
+# spec:
+#   entryPoints:
+#     - web
+#   routes:
+#     - match: Host(`backend.phistest.fedgen.net`) && (PathPrefix(`/adminPHIS/`) || PathPrefix(`/adminPHIS/{[a-zA-Z0-9]+}/{[a-zA-Z0-9]+}`))
+#       kind: Rule
+#       services:
+#         - name: admin-web-service
+#           port: 80 
+#   tls:
+#     certResolver: letsEncrypt
+
+# ---
+# apiVersion: traefik.containo.us/v1alpha1
+# kind: Certificate
+# metadata:
+#   name: letsencrypt-certificate
+# spec:
+#   domains:
+#     - main: backend.phistest.fedgen.net

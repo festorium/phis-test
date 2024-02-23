@@ -1,4 +1,4 @@
-import json
+import json, datetime
 from adminPHIS.models import Followers
 
 import jwt
@@ -6,9 +6,9 @@ import requests, os
 from django.shortcuts import render
 from rest_framework import status, response
 from rest_framework.response import Response
-from .models import AuthorApplication, Microservice, Menu, Submenu, PhisUser, Post
+from .models import AuthorApplication, Microservice, Menu, Submenu, Role, PhisUser, Post
 from .serializers import MicroserviceSerializer, GroupSerializer, MenuSerializer, PermissionSerializer, \
-    SubmenuSerializer, PhisUserSerializer, PostSerializer
+    SubmenuSerializer, PhisUserSerializer, PostSerializer, RoleSerializer
 from rest_framework.decorators import api_view
 from .roles import authenticate_admin, authenticated_user, admin_only, public_route
 from django.utils import timezone
@@ -16,10 +16,52 @@ from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from jwt.exceptions import ExpiredSignatureError
 
-AUTH_URL = 'https://fedgen.ml/auth'
-CONTENT_URL = "https://fedgen.ml/content"
-secret = os.environ['JWT_SECRET_KEY']
+AUTH_URL = "https://phis.fedgen.net/auth"
+CONTENT_URL = "https://phis.fedgen.net/content"
+BACKEND_URL = "https://phis.fedgen.net"
+secret = "QYmXTKt6bnzaFi76H7R88FQ"
 page = 10
+
+
+# UTILITIES
+def generate_token():
+    payload = {
+            'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=3),
+            'iat': datetime.datetime.utcnow()
+        }
+
+    token = jwt.encode(payload, secret, algorithm='HS256')
+    
+    return token
+
+def send_notification_message(message, to, url=None):
+    """Sends in-app notification to user"""
+    event_data = {
+                "to": to,
+                "message": message,
+                "url": url
+            }
+    token = generate_token()
+    header = {'Authorization': token}
+    req = requests.post(BACKEND_URL + '/notify/messages', json=event_data, headers=header)
+
+    if req.ok:
+        return True
+    else:
+        return False
+    
+def _get_user_from_auth_microservice(request, user_id):
+    res = requests.post(AUTH_URL + '/get.user', json={"id": user_id}, headers={'Authorization': request.headers['Authorization']})
+    if res.ok:
+        res_data = res.json()['data']
+        user = PhisUser.objects.filter(auth_user_id=user_id).first()
+        if user is None:
+            user = PhisUser(email=res_data['email'], auth_user_id=res_data['id'], firstname=res_data['firstname'], lastname=res_data['lastname'])
+            user.save()
+        return True
+    else:
+        return False
+
 # Microservice
 @api_view(['GET'])
 @authenticate_admin
@@ -176,6 +218,7 @@ def submenuList(request, format=None):
     return Response(response)
 
 
+
 @api_view(['POST'])
 @authenticate_admin
 def submenuAdd(request, format=None):
@@ -243,14 +286,16 @@ def submenuRemove(request, pk):
 # Role View
 @api_view(['GET'])
 def roleList(request, format=None):
-    group = Group.objects.all()
-    serializer = GroupSerializer(group, many=True)
+    group = Role.objects.all()
+    serializer = RoleSerializer(group, many=True)
     response = {
         'ok': 'True',
         'details': 'List of Roles',
         'data': serializer.data,
     }
     return Response(response)
+
+
 
 
 
@@ -279,18 +324,25 @@ def roleAdd(request, format=None):
 
 
 
+
 @api_view(['PUT'])
 @authenticate_admin
 def roleEdit(request, pk):
-    group = Group.objects.get(id=pk)
-    serializer = GroupSerializer(instance=group, data=request.data)
-    if serializer.is_valid():
-        serializer.save()
-    response = {
-        'ok': 'True',
-        'details': 'Role edited',
-        'data': serializer.data,
-    }
+    data = request.data
+    role = Role.objects.get(id=pk)
+    if role is not None:
+        serializer = RoleSerializer(role, data=data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            response = {
+                'ok': True,
+                'details': 'Role edited',
+            }
+    else:
+        response = {
+            'ok': False,
+            'details': 'NotFound'
+        }
     return Response(response)
 
 @api_view(['GET'])
@@ -309,14 +361,47 @@ def roleFunctionList(request, format=None):
 @api_view(['POST'])
 @authenticate_admin
 def roleFunctionAdd(request, format=None):
-    permissions = Permission.objects.get(id=request.data['pid'])
-    auth_group = Group.objects.get(name=request.data['rolename'])
-    auth_group.permissions.add(permissions)
+    response = Response()
+    data = request.data
+    role_id = Role.objects.filter(id=request.data['role_id']).first()
+    submenu = Submenu.objects.filter(id=data['submenu_id']).first()
+    
+    if role_id is not None and submenu is not None:
+        submenu.role.add(role_id)
+        response.data = {
+            'ok': 'True',
+            'details': 'Role Right Assigned'
+        }
+        response.status_code = 201
+    else:
+        response.data = {
+            'ok': False,
+            "details": "Duplicate"
+        }
+        response.status_code = 409
+    return response
 
-    group = Group.objects.all()
-    serializer = GroupSerializer(group, many=True)
 
-    return Response(serializer.data)
+# roleFunctionRem
+@api_view(['POST'])
+@authenticate_admin
+def roleFunctionRem(request, format=None):
+    data = request.data
+    role_id = Role.objects.filter(id=data['role_id']).first()
+    submenu = Submenu.objects.filter(id=data['submenu_id']).first()
+    
+    response = Response(
+        {
+            'ok': 'True' if role_id and submenu else 'False',
+            'details': 'Role Right Unassigned' if role_id and submenu else 'No Right'
+        },
+        status=201 if role_id and submenu else 409
+    )
+
+    if role_id and submenu:
+        submenu.role.remove(role_id)
+    
+    return response
 
 
 # @authenticated_user
@@ -350,14 +435,51 @@ def userRoleAdd(request, format=None):
             "user_role": new_role
         }
         header = {'Authorization': request.headers.get('Authorization', None)}
-        auth_request = requests.post('https://fedgen.ml/auth/event.assign.role',  json=role_data, headers=header)
-        content_request = requests.post('https://fedgen.ml/content/event.assign.role', json=content_data, headers=header)
+        auth_request = requests.post(BACKEND_URL + '/auth/event.assign.role',  json=role_data, headers=header)
+        content_request = requests.post(BACKEND_URL + '/content/event.assign.role', json=content_data, headers=header)
             
         response.data = {"ok": True, "details": "User role changed"}
         
     else:
         response.data = {"ok": False, "details": "User not found"}
 
+    return response
+
+# userRoleRem
+@api_view(['POST'])
+@authenticate_admin
+def userRoleRem(request):
+    if 'user_email' not in request.data:
+        response = Response({"ok": False, "details": "Missing user_email field"}, status=status.HTTP_400_BAD_REQUEST)
+        return response
+        
+    response = Response()
+
+    user = get_object_or_404(PhisUser, email=request.data['user_email'])
+    new_role = "P"
+
+    try:
+        user.objects.update(user_role=new_role)
+        role_data = {
+            "user_email": request.data['user_email'],
+            "user_role": new_role
+        }
+        content_data = {
+            "auth_user_id": user.auth_user_id,
+            "user_role": new_role
+        }
+        header = {'Authorization': request.headers.get('Authorization', None)}
+        auth_request = requests.post(BACKEND_URL + '/auth/event.assign.role',  json=role_data, headers=header)
+        auth_request.raise_for_status()
+        content_request = requests.post(BACKEND_URL + '/content/event.assign.role', json=content_data, headers=header)
+        content_request.raise_for_status()
+    except requests.exceptions.RequestException as e:
+        response.data = {"ok": False, "details": "Error sending HTTP request: " + str(e)}
+        response.status = status.HTTP_500_INTERNAL_SERVER_ERROR
+        return response
+        
+    response.data = {"ok": True, "details": "User role changed"}
+    response.status = status.HTTP_200_OK
     return response
 
 
@@ -461,7 +583,7 @@ def engageApplication(request, format=None):
                     # Send request to auth microservice
                     res = requests.post(AUTH_URL + '/update.user', json=auth_data, headers={'Authorization': request.headers['Authorization']})
                     # Send event to notification microservice
-                    res1 = requests.post('https://fedgen.ml/notify/author', json=notification_data, headers={'Authorization': request.headers['Authorization']})
+                    res1 = requests.post(BACKEND_URL + '/notify/author', json=notification_data, headers={'Authorization': request.headers['Authorization']})
                     response.data = {"ok": True, "details": "User approved as author"}
             else:
                 response.data = {"ok": False, "details": "User not found"}
@@ -479,7 +601,7 @@ def engageApplication(request, format=None):
                     "to": phis_user.email,
                     "token": secret
                 }
-                res1 = requests.post('https://fedgen.ml/notify/author', json=notification_data, headers={'Authorization': request.headers['Authorization']})
+                res1 = requests.post(BACKEND_URL + '/notify/author', json=notification_data, headers={'Authorization': request.headers['Authorization']})
             else:
                 response.data = {"ok": False, "details": "User not found"}
         else:
@@ -566,10 +688,9 @@ def getAuthor(request, pk):
     response = Response()
     if request.payload is not None: # is the request made by an authourised user
         phis_user_id = request.payload['id']
-        user = PhisUser.objects.filter(auth_user_id=request.payload['id'])
         author = PhisUser.objects.filter(auth_user_id=pk).first()
         application = AuthorApplication.objects.filter(email=author.email, status="A").first()
-        if author is not None and application is not None and user is not None: # If request is from a logged in user
+        if author is not None and application is not None: # If request is from a logged in user
             follower = application.followers_data
             if follower is not None:
                 find = follower.get(phis_user_id)
@@ -580,6 +701,7 @@ def getAuthor(request, pk):
             else:
                 isFollower = False
             application = {
+                "profile_picture": author.profile_picture,
                 "email": application.email,
                 "gs": application.google_scholar, 
                 "status": application.status,
@@ -590,17 +712,27 @@ def getAuthor(request, pk):
                 "about": author.about,
                 "isFollower": isFollower,
                 "number_followers": application.number_followers,
-                "firstname": PhisUser.objects.filter(email=application.email).first().firstname,
-                "lastname": PhisUser.objects.filter(email=application.email).first().lastname
+                "firstname": author.firstname,
+                "lastname": author.lastname
                 } 
             response.data = {"ok": True, "data": application}
+            response.status_code = 200
+
+        elif author is not None and application is None:
+            response.data = {"ok": False, "message": "User has not applied to be an author"}
+            response.status_code = 403
+
         else:
-            response.data = {"ok": False}
+            _get_user_from_auth_microservice(request, pk)
+            response.data = {"ok": False, "message": "User not Found"}
+            response.status_code = 404
+
     else: # If is a public request
         author = PhisUser.objects.filter(auth_user_id=pk).first()
         application = AuthorApplication.objects.filter(email=author.email, status="A").first()
         if author is not None and application is not None:
             application = {
+                 "profile_picture": author.profile_picture,
                 "email": application.email,
                 "gs": application.google_scholar, 
                 "status": application.status,
@@ -610,12 +742,20 @@ def getAuthor(request, pk):
                 "ace": application.capic_status,
                 "about": author.about,
                 "number_followers": application.number_followers,
-                "firstname": PhisUser.objects.filter(email=application.email).first().firstname,
-                "lastname": PhisUser.objects.filter(email=application.email).first().lastname
+                "firstname": author.firstname,
+                "lastname": author.lastname
                 } 
             response.data = {"ok": True, "data": application}
+            response.status_code = 200
+
+        elif author is not None and application is None:
+            response.data = {"ok": False, "message": "User has not applied to be an author"}
+            response.status_code = 403
+
         else:
-            response.data = {"ok": False}
+            _get_user_from_auth_microservice(request, pk)
+            response.data = {"ok": False, "message": "User not Found"}
+            response.status_code = 404
 
     
     return response
@@ -645,7 +785,8 @@ def getUser(request, format=None):
                 "firstname": user.firstname,
                 "lastname": user.lastname,
                 "about": user.about,
-                "role": user.user_role
+                "role": user.user_role,
+                "profile_picture": user.profile_picture
             }
         }
     elif user is not None and application is None:
@@ -657,7 +798,8 @@ def getUser(request, format=None):
                 "firstname": user.firstname,
                 "lastname": user.lastname,
                 "about": user.about,
-                "role": user.user_role
+                "role": user.user_role,
+                "profile_picture": user.profile_picture
             }
         }
     else:
@@ -743,9 +885,14 @@ def followAuthor(request, format=None):
         phis_user = PhisUser.objects.filter(auth_user_id=phis_user_id).first()
         author = PhisUser.objects.filter(auth_user_id=author_id).first()
         application = AuthorApplication.objects.get(email=author.email)
+
+        # If User, Author, and Author application are found
         if application is not None and author is not None and phis_user is not None:
             if author.user_role != 'P':
                 followers = application.followers_data
+
+                # If author has followers add new follower to followers_data JSON
+                # else create a new following_data JSON for the author
                 if followers is not None:
                     find = followers.get(phis_user_id)
                     if find is None:
@@ -757,12 +904,33 @@ def followAuthor(request, format=None):
                             }
                         application.save()
 
-                        phis_user.following_data[author_id] = {
-                            "auth_user_id": author_id, 
-                            "firstname": author.firstname, 
-                            "lastname": author.lastname
-                        }
-                        phis_user.save()
+
+                        # If User is not following any author
+                        # create new JSON with author data
+                        if phis_user.following_data is None:
+                            data = {author_id: {
+                                    "auth_user_id": author_id, 
+                                    "firstname": author.firstname, 
+                                    "lastname": author.lastname
+                                }
+                            }
+                            phis_user.following_data = data
+                            phis_user.save()
+                        else:
+                            phis_user.following_data[author_id] = {
+                                    "auth_user_id": author_id, 
+                                    "firstname": author.firstname, 
+                                    "lastname": author.lastname
+                                }
+                            phis_user.save()
+                            
+                        # send notification
+                        message = """
+                        {} {} followed you
+                        """.format(phis_user.firstname, phis_user.lastname)
+                        to = author_id
+                        send_notification_message(message, to)
+
                         response.data = {
                             "ok": True,
                             "details": "Followed"
@@ -775,10 +943,43 @@ def followAuthor(request, format=None):
                             }
                         response.status_code = 409
                 else:
+                    # Add to author followers data
                     application.number_followers += 1
-                    data = {phis_user_id: phis_user_id}
+                    data = {phis_user_id: {
+                            "auth_user_id": phis_user_id, 
+                            "firstname": phis_user.firstname, 
+                            "lastname": phis_user.lastname
+                            }}
                     application.followers_data = data
                     application.save()
+
+                    
+                    # If User is not following any author
+                    # create new JSON with author data
+                    if phis_user.following_data is None:
+                        data = {author_id: {
+                                "auth_user_id": author_id, 
+                                "firstname": author.firstname, 
+                                "lastname": author.lastname
+                            }
+                        }
+                        phis_user.following_data = data
+                        phis_user.save()
+                    else:
+                        phis_user.following_data[author_id] = {
+                                "auth_user_id": author_id, 
+                                "firstname": author.firstname, 
+                                "lastname": author.lastname
+                            }
+                        phis_user.save()
+
+                    # Send notification
+                    message = """
+                    {} {} followed you
+                    """.format(phis_user.firstname, phis_user.lastname)
+                    to = author_id
+                    send_notification_message(message, to)
+
                     response.data = {
                         "ok": True,
                         "details": "Followed"
@@ -790,13 +991,14 @@ def followAuthor(request, format=None):
                     "details": "Author not Found"
                 }
                 response.status_code = 404
-                
+              
         else:
             response.data ={
                 "ok": False,
                 "message": "BadRequest"
             }
             response.status_code = 400
+
     except KeyError:
         response.data ={
             "ok": False,
@@ -825,8 +1027,14 @@ def unfollowAuthor(request, format=None):
                         application.number_followers -= 1
                         application.save()
 
-                        phis_user.following_data.pop(author_id)
-                        phis_user.save()
+                        # If user is not following any author
+                        # create empty JSON
+                        if phis_user.following_data is None:
+                            phis_user.following_data = {}
+                            phis_user.save()
+                        else:
+                            phis_user.following_data.pop(author_id)
+                            phis_user.save()
 
                         response.data = {
                             "ok": True,
@@ -886,4 +1094,73 @@ def getFollowing(request, format=None):
     response.status_code = 200
     return response 
 
+@api_view(['PATCH'])
+@authenticated_user
+def setProfilePicture(request, format=None):
+    data = request.data
+    response = Response()
+    phis_user_id = request.payload['id']
+    phis_user = PhisUser.objects.filter(auth_user_id=phis_user_id).first()
+    if phis_user is not None and data.get('path'):
+        phis_user.profile_picture = data['path']
+        phis_user.save()
+        response.data = {
+            "ok": True,
+            "updated": True
+        }
+        response.status_code = 200
+    else:
+        response.data = {
+            "ok": False,
+            "updated": False
+        }
+        response.status_code = 404
 
+    return response
+
+@api_view(['GET'])
+@authenticated_user
+def hasUserAppliedToBeAuthor(request, format=None):
+    response = Response()
+    phis_user_id = request.payload['id']
+    phis_user = PhisUser.objects.filter(auth_user_id=phis_user_id).first()
+    if phis_user is not None:
+        application = AuthorApplication.objects.filter(email=phis_user.email).first()
+        if application is not None:
+            response.data = {
+                "ok": True
+            }
+            response.status_code = 200
+        else:
+            response.data = {
+                "ok": False
+            }
+            response.status_code = 404
+    else:
+        response.data = {
+            "ok": False
+        }
+        response.status_code = 404
+
+    return response
+
+
+
+@api_view(['GET'])
+def get_profile_picture(request, user_id):
+    response = Response()
+    user = PhisUser.objects.filter(auth_user_id=user_id).first()
+    if user is not None:
+        response.data = {
+            "ok": True,
+            "path": user.profile_picture
+        }
+        response.status_code = 200
+    else:
+        response.data = {
+            "ok": False,
+            "path": "/media/profiles/default.png"
+        }
+        response.status_code = 404
+
+    return response

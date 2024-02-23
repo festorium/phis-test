@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from adminPHIS.models import AuthorApplication, PhisUser
 from rest_framework.exceptions import AuthenticationFailed
 
-JWT_SECRET = os.environ['JWT_SECRET_KEY']
+JWT_SECRET = "QYmXTKt6bnzaFi76H7R88FQ"
 JWT_ALGORITHM = 'HS256'
 
 

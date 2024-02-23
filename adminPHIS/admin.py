@@ -6,8 +6,8 @@ from .models import *
 admin.site.register(Microservice)
 admin.site.register(Menu)
 admin.site.register(Submenu)
-
 admin.site.register(PhisUser)
-
-# admin.site.register(Role)
-# admin.site.register(Criteria)
+admin.site.register(Role)
+admin.site.register(Post)
+admin.site.register(AuthorApplication)
+admin.site.register(Followers)
