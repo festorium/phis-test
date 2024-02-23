@@ -89,6 +89,7 @@ class Menu(models.Model):
     class Meta:
         ordering = ['menucreated']
 
+
 class Role(models.Model):
     user = models.ForeignKey(PhisUser, on_delete=models.CASCADE)
     rolename = models.CharField(max_length=200)
@@ -104,8 +105,8 @@ class Role(models.Model):
 
     class Meta:
         ordering = ['rolecreated']
-        
-        
+
+
 class Submenu(models.Model):
     user = models.ForeignKey(PhisUser, on_delete=models.CASCADE)
     menu = models.ForeignKey(Menu, on_delete=models.CASCADE)
@@ -138,6 +139,7 @@ class Post(models.Model):
     class Meta:
         ordering = ['-id']
 
+
 class AuthorApplication(models.Model):
     PENDING = "P"
     DECLINED = "D"
@@ -161,11 +163,11 @@ class AuthorApplication(models.Model):
     number_followers = models.IntegerField(default=0)
     followers_data = models.JSONField(null=True)
 
+
 class Followers(models.Model):
     author_email = models.EmailField(unique=True)
     followers = models.ManyToManyField(PhisUser)
     number_followers = models.IntegerField(default=0)
-
 
 # class Criteria(models.Model):
 #     pass
