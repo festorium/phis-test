@@ -71,7 +71,7 @@ DATABASES = {
         'NAME': 'adminmanager',
         'USER': 'root',
         'PASSWORD': 'adesiju1234',
-        'HOST': 'localhost'
+        'HOST': 'admin-mysql-service'
     },
     'sqlite': {
         'ENGINE': 'django.db.backends.sqlite3',
