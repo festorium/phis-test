@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: web
-        image: fedgen/admin:latest
+        image: fedgen/admin:01
         ports:
         - containerPort: 80
           protocol: TCP
